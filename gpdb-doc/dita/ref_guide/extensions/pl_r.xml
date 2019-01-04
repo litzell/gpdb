@@ -26,6 +26,7 @@
       <li id="py219064">
         <xref href="#topic14" type="topic" format="dita"/>
       </li>
+      <li><xref href="#topic_g12_gwt_3gb" format="dita"/></li>
       <li id="py217165">
         <xref href="#topic15" type="topic" format="dita"/>
       </li>
@@ -185,12 +186,13 @@ LANGUAGE 'plr';</codeblock>
           <codeblock>--Create TYPE to store model results
 DROP TYPE IF EXISTS wj_model_results CASCADE;
 CREATE TYPE wj_model_results AS (
-  cs text, coefext float, ci_95_lower float, ci_95_upper float, 
-  ci_90_lower, float, ci_90_upper float, ci_80_lower, 
-  float, ci_80_upper float);
+  cs text, coefext float, ci_95_lower float, ci_95_upper float,
+  ci_90_lower float, ci_90_upper float, ci_80_lower float,
+  ci_80_upper float);
 
 --Create PL/R function to run model in R
-DROP FUNCTION wj.plr.RE(response float [ ], cs text [ ])
+DROP FUNCTION IF EXISTS wj_plr_RE(float [ ], text [ ]);
+CREATE FUNCTION wj_plr_RE(response float [ ], cs text [ ])
 RETURNS SETOF wj_model_results AS
 $$
   library(arm)
@@ -202,7 +204,7 @@ $$
   n_cs_unique&lt;- length(cs_unique)
   temp_m0&lt;- data.frame(matrix0,n_cs_unique, 7))
   for (i in 1:n_cs_unique){temp_m0[i,]&lt;-
-    c(exp(coef(m0)$cs[i,1] + c(0,-1.96,1.96,-1.65,1.65
+    c(exp(coef(m0)$cs[i,1] + c(0,-1.96,1.96,-1.65,1.65,
       -1.28,1.28)*se.ranef(m0)$cs[i]))}
   names(temp_m0)&lt;- c("Coefest", "CI_95_Lower",
     "CI_95_Upper", "CI_90_Lower", "CI_90_Upper",
@@ -216,8 +218,8 @@ LANGUAGE 'plr';
 --table
 DROP TABLE IF EXISTS wj_model_results_roi;
 CREATE TABLE wj_model_results_roi AS SELECT * 
-  FROM wj.plr_RE((SELECT wj.droi2_array), 
-  (SELECT cs FROM wj.droi2_array));</codeblock>
+  FROM wj_plr_RE((SELECT wj_droi2_array),
+  (SELECT cs FROM wj_droi2_array));</codeblock>
         </body>
       </topic>
     </topic>
@@ -314,6 +316,26 @@ LANGUAGE 'plr';</codeblock><p>This
         <p>You can use the R command <codeph>-e</codeph> option to run functions from the command
           line. For example, this command displays help on the R package MASS.</p>
         <codeblock>$ R -e 'help("MASS")'</codeblock>
+      </body>
+    </topic>
+    <topic id="topic_g12_gwt_3gb">
+      <title>Loading R Modules at Startup</title>
+      <body>
+        <p>PL/R can automatically load saved R code during interpreter initialization. To use this
+          feature, you create the <codeph>plr_modules</codeph> database table and then insert the R
+          modules you want to auto-load into the table. If the table exists, PL/R will load the code
+          it contains into the interpreter.</p>
+        <p>In a Greenplum Database system, table rows are usually distributed so that each row
+          exists at only one segment instance. The R interpreter at each segment instance, however,
+          needs to load all of the modules, so a normally distributed table will not work. You must
+          create the <codeph>plr_modules</codeph> table as a <i>replicated table</i> so that all
+          rows in the table are present at every segment instance:</p>
+        <codeblock>CREATE TABLE plr_modules {
+  modseq int4,
+  modsrc text
+) DISTRIBUTED REPLICATED;</codeblock>
+        <p>See <xref href="http://www.joeconway.com/plr/doc/plr-module-funcs.html" format="html"
+            scope="external"/> for more information about using the PL/R auto-load feature.</p>
       </body>
     </topic>
     <topic id="topic15" xml:lang="en">
