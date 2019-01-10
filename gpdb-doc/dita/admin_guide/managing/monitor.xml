@@ -250,9 +250,9 @@ Distributed by: (sale_id)
             same number of rows.</p>
         <note>
           <p>If you run this query on a replicated table it fails because Greenplum Database does
-            not permit user queries to reference system columns in replicated tables. Because every
-            segment has all of the tables' rows, replicated tables are evenly distributed by
-            definition.</p>
+            not permit user queries to reference the <codeph>gp_segment_id</codeph> system column in
+            replicated tables. Because every segment has all of the tables' rows, replicated tables
+            are evenly distributed by definition.</p>
         </note>
         </body>
       </topic>
