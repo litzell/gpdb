@@ -158,7 +158,7 @@
         </tgroup>
       </table>
       <p>Greenplum Database treats <codeph>READ UNCOMMITTED</codeph> the same as <codeph>READ
-          COMMITTED</codeph> and <codeph>SERIALIZABLE</codeph> the same as <codeph>REPEATABLE
+          COMMITTED</codeph> and treats <codeph>SERIALIZABLE</codeph> the same as <codeph>REPEATABLE
           READ</codeph>.</p>
       <p>The difference between <codeph>READ COMMITTED</codeph> and <codeph>REPEATABLE READ</codeph>
         is that with <codeph>READ COMMITTED</codeph>, each statement in a transaction sees only rows
@@ -181,16 +181,22 @@
         guarantees that a set of transactions executed concurrently produces the same result as if
         the transactions executed sequentially one after the other. If <codeph>SERIALIZABLE</codeph>
         is specified, Greenplum Database falls back to <codeph>REPEATABLE READ</codeph>. The MVCC
-        snapshot isolation model prevents dirty reads, non-repeatable reads, and phantom reads
+        Snapshot Isolation (SI) model prevents dirty reads, non-repeatable reads, and phantom reads
         without expensive locking, but there are other interactions that can occur between some
           <codeph>SERIALIZABLE</codeph> transactions in Greenplum Database that prevent them from
         being truly serializable. These anomalies can often be attributed to the fact that Greenplum
         Database does not perform <i>predicate locking</i>, which means that a write in one
         transaction can affect the result of a previous read in another concurrent transaction.</p>
-      <p>Transactions that run concurrently should be examined to identify interactions that are not
-        prevented by disallowing concurrent updates of the same data. Problems identified can be
-        prevented by using explicit table locks or by requiring the conflicting transactions to
-        update a dummy row introduced to represent the conflict. </p>
+      <note>The PostgreSQL 9.1 <codeph>SERIALIZABLE</codeph> isolation level introduces a new
+        Serializable Snapshot Isolation (SSI) model, which is fully compliant with the SQL standard
+        definition of serializable transactions. This model is not available in Greenplum Database.
+        SSI monitors concurrent transactions for conditions that could cause serialization
+        anomalies. When potential serialization problems are found, one transaction is allowed to
+        commit and others are rolled back and must be retried. </note>
+      <p>Greenplum Database transactions that run concurrently should be examined to identify
+        interactions that are not prevented by disallowing concurrent updates of the same data.
+        Problems identified can be prevented by using explicit table locks or by requiring the
+        conflicting transactions to update a dummy row introduced to represent the conflict. </p>
       <p>The SQL <codeph>SET TRANSACTION ISOLATION LEVEL</codeph> statement sets the isolation mode
         for the current transaction. The mode must be set before any <codeph>SELECT</codeph>,
           <codeph>INSERT</codeph>, <codeph>DELETE</codeph>, <codeph>UPDATE</codeph>, or
