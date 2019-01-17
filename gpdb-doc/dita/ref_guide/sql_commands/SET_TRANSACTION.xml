@@ -112,7 +112,7 @@ SET SESSION CHARACTERISTICS AS TRANSACTION <varname>transaction_mode</varname>
       <title>Examples</title>
       <p>Set the transaction isolation level for the current transaction:</p>
       <codeblock>BEGIN;
-SET TRANSACTION ISOLATION LEVEL REPEATLE READ;</codeblock>
+SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;</codeblock>
     </section>
     <section id="section7">
       <title>Compatibility</title>

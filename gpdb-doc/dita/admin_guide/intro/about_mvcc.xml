@@ -115,7 +115,7 @@
         support, with the phenomena that are allowed when transactions execute concurrently for each
         level. </p>
       <table frame="all" id="table_gxb_qsz_nt">
-        <title>Transaction Isolation Modes</title>
+        <title>SQL Transaction Isolation Modes</title>
         <tgroup cols="4">
           <colspec colname="c1" colnum="1" colwidth="1*"/>
           <colspec colname="c2" colnum="2" colwidth="1*"/>
@@ -157,9 +157,11 @@
           </tbody>
         </tgroup>
       </table>
-      <p>Greenplum Database treats <codeph>READ UNCOMMITTED</codeph> the same as <codeph>READ
-          COMMITTED</codeph> and treats <codeph>SERIALIZABLE</codeph> the same as <codeph>REPEATABLE
-          READ</codeph>.</p>
+      <p>Greenplum Database <codeph>READ UNCOMMITTED</codeph> and <codeph>READ COMMITTED</codeph>
+        isolation modes behave like the SQL standard <codeph>READ COMMITTED</codeph> mode. Greenplum
+        Database <codeph>SERIALIZABLE</codeph> and <codeph>REPEATABLE READ</codeph> isolation modes
+        behave like the SQL standard <codeph>READ COMMITTED</codeph> mode, except that Greenplum
+        Database also prevents phantom reads.</p>
       <p>The difference between <codeph>READ COMMITTED</codeph> and <codeph>REPEATABLE READ</codeph>
         is that with <codeph>READ COMMITTED</codeph>, each statement in a transaction sees only rows
         committed before the <i>statement</i> started, while in <codeph>READ COMMITTED</codeph>
@@ -194,7 +196,7 @@
         anomalies. When potential serialization problems are found, one transaction is allowed to
         commit and others are rolled back and must be retried. </note>
       <p>Greenplum Database transactions that run concurrently should be examined to identify
-        interactions that are not prevented by disallowing concurrent updates of the same data.
+        interactions that may update the same data concurrently.
         Problems identified can be prevented by using explicit table locks or by requiring the
         conflicting transactions to update a dummy row introduced to represent the conflict. </p>
       <p>The SQL <codeph>SET TRANSACTION ISOLATION LEVEL</codeph> statement sets the isolation mode
