@@ -29,7 +29,7 @@ ALTER TABLE <varname>name</varname>
                         <codeblock>  ADD [COLUMN] <varname>column_name type</varname> [ DEFAULT <varname>default_expr</varname> ]
       [<varname>column_constraint</varname> [ ... ]]
       [ ENCODING ( <varname>storage_directive</varname> [,...] ) ]
-  DROP [COLUMN] [IF EXITS] <varname>column</varname> [RESTRICT | CASCADE]
+  DROP [COLUMN] [IF EXISTS] <varname>column</varname> [RESTRICT | CASCADE]
   ALTER [COLUMN] <varname>column</varname> [ SET DATA ] TYPE <varname>type</varname> [USING <varname>expression</varname>]
   ALTER [COLUMN] <varname>column</varname> SET DEFAULT <varname>expression</varname>
   ALTER [COLUMN] <varname>column</varname> DROP DEFAULT
@@ -159,7 +159,7 @@ ALTER TABLE <varname>name</varname>
                                         be set in the range 100 to 10000, or set to -1 to revert to
                                         using the system default statistics target
                                                 (<codeph>default_statistics_target</codeph>).</li>
-                                <li><b>SET STATISTICS DISTINCT</b> - Overrides the
+                                <li><b>SET STATISTICS DISTINCT</b> — Overrides the
                                         number-of-distinct-values estimate made by subsequent
                                                 <codeph>ANALYZE</codeph> operations. When set to a
                                         positive value, <codeph>ANALYZE</codeph> will assume that
@@ -327,7 +327,11 @@ ALTER TABLE <varname>name</varname>
                                                 If the <codeph>ONLY</codeph> keyword is not used,
                                                 the operation will be performed on the named table
                                                 and any child table partitions associated with that
-                                                table.</pd>
+                                                table. Adding or dropping a column, or changing a
+                                                column's type in a parent or descendant table only
+                                                is not permitted. The parent table and its
+                                                descendents must always have the same columns and
+                                                types.</pd>
                                 </plentry>
                                 <plentry>
                                         <pt>
@@ -360,7 +364,7 @@ ALTER TABLE <varname>name</varname>
                                         <pt>
                                                 <varname>new_column</varname>
                                         </pt>
-                                        <pd>New name for an existing column. </pd>
+                                        <pd>New name for an existing column.</pd>
                                 </plentry>
                                 <plentry>
                                         <pt>
@@ -781,9 +785,10 @@ ALTER TABLE <varname>name</varname>
                                 semantically-visible change in the table, but the command forces
                                 rewriting, which gets rid of no-longer-useful data.</p>
                         <p>If a table is partitioned or has any descendant tables, it is not
-                                permitted to add, rename, or change the type of a column in the
-                                parent table without doing the same to the descendants. This ensures
-                                that the descendants always have columns matching the parent. </p>
+                                permitted to add or drop a column, to rename a column, or to change
+                                the type of a column in the parent table without doing the same to
+                                the descendants. This ensures that the descendants always have
+                                columns matching the parent. </p>
                         <p>To see the structure of a partitioned table, you can use the view
                                                 <codeph><xref
                                                 href="../system_catalogs/pg_partitions.xml"
