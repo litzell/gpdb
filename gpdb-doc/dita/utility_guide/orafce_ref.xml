@@ -26,7 +26,7 @@
         </ul>
       <p>For information about using the Oracle Compatibility Functions, refer to the documentation
         at the Orafce project home at <codeph>https://github.com/orafce/orafce</codeph>. The  source
-        files for the documention in the Orafce project are included in the Greenplum Database open
+        files for the documentation in the Orafce project are included in the Greenplum Database open
         source  project.</p>
     </body>
   </topic>
@@ -107,7 +107,7 @@ SELECT DECODE(date1, '2001-11-11', '2001-01-01') FROM TEST;</codeblock><p>Greenp
       <p>Following are differences between using the Oracle Compatibility Functions with PostgreSQL
         and Greenplum Database. </p>
       <ul id="ul_njs_p4l_4gb">
-        <li>The <codeph>decode()</codeph> function is removed from Greenplum Database Oracle
+        <li>The <codeph>decode()</codeph> function is removed from the Greenplum Database Oracle
           Compatibility Functions. The Greenplum Database parser converts <codeph>decode()</codeph>
           function calls to <codeph>case</codeph> statements.</li>
         <li>The functions in the Oracle Compatibility Functions <codeph>dbms_pipe</codeph> package
