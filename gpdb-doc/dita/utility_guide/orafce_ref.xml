@@ -12,10 +12,15 @@
     <title>About the Oracle Compatibility Functions for Greenplum Database</title>
     <body>
       <p>Oracle Compatibility Functions for Greenplum Database is based on the open source Orafce
-        project at <codeph>https://github.com/orafce/orafce</codeph>. The modified Orafce source
-        files for Greenplum Database can be found in the <codeph>gpcontrib/orafce</codeph> directory
-        in the <xref href="https://github.com/greenplum-db/gpdb" format="html" scope="external"
-          >Greenplum Database open source project</xref>.</p>
+        project at <xref href="https://github.com/github.com/orafce/orafce" format="html"
+          scope="external"><codeph>https://github.com/orafce/orafce</codeph></xref>. </p>
+      <p>The modified Orafce source files for Greenplum Database can be found in the
+          <codeph>gpcontrib/orafce</codeph> directory in the <xref
+          href="https://github.com/greenplum-db/gpdb" format="html" scope="external">Greenplum
+          Database open source project</xref>. The source includes the Orafce 3.6.1 release and
+        additional commits to <xref
+          href="https://github.com/orafce/orafce/tree/3af70a28f6ab81f43c990fb5661df99a37328b8a"
+          format="html" scope="external">3af70a28f6</xref>.</p>
       <p>The following functions are available by default in Greenplum Database and do not require
         installing Oracle Compatibility Functions:</p>
 	<ul>
@@ -25,9 +30,11 @@
          <li>decode</li>
         </ul>
       <p>For information about using the Oracle Compatibility Functions, refer to the documentation
-        at the Orafce project home at <codeph>https://github.com/orafce/orafce</codeph>. The  source
-        files for the documentation in the Orafce project are included in the Greenplum Database open
-        source  project.</p>
+        at the Orafce project home at <xref
+          href="https://github.com/orafce/orafce/tree/3af70a28f6ab81f43c990fb5661df99a37328b8a"
+          format="html" scope="external">https://github.com/orafce/orafce</xref>. The source files
+        for the documentation in the Orafce project are also included in the Greenplum Database open
+        source project.</p>
     </body>
   </topic>
   <topic id="topic2" xml:lang="en" ditaarch:DITAArchVersion="1.1"
