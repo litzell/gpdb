@@ -304,7 +304,7 @@
            </pd>
            <pd>
              Comments for the copied columns, constraints, and indexes
-             will only be copied if <literal>INCLUDING COMMENTS</literal>
+             will only be copied if <codeph>INCLUDING COMMENTS</codeph>
              is specified. The default behavior is to exclude comments, resulting in
              the copied columns and constraints in the new table having no comments.
            </pd>
