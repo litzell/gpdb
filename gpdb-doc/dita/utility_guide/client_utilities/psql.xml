@@ -511,7 +511,7 @@ testdb=#</codeblock>
             commands are used to set access privileges. </pd>
         </plentry>
         <plentry>
-          <pt>\drds [<varname>role-pattern</varname></pt>
+          <pt>\drds [<varname>role-pattern</varname>]</pt>
           <pd>Lists defined configuration settings.  These settings can be role-specific,
             database-specific, or both.  <varname>role-pattern</varname> and
             <varname>database-pattern</varname> are used to select
