@@ -27,7 +27,7 @@
          <li>sinh</li>
          <li>tanh</li>
          <li>cosh</li>
-         <li>decode</li>
+         <li>decode (See <xref href="#topic3" format="dita"/> for more information.)</li>
         </ul>
       <p>For information about using the Oracle Compatibility Functions, refer to the documentation
         at the Orafce project home at <xref
@@ -42,8 +42,13 @@
     class="- topic/topic ">
     <title class="- topic/title ">Installing Oracle Compatibility Functions</title>
     <body class="- topic/body ">
-      <p>Before using the Oracle Compatibility Functions, install them in each of your databases
-        using the <codeph>CREATE EXTENSION</codeph> SQL command.</p>
+      <note>Always use the Oracle Compatibility Functions module included with your Greenplum
+        Database version. Before upgrading to a new Greenplum Database version, uninstall the
+        compatibility functions from each of your databases, and then, when the upgrade is complete,
+        reinstall the compatibility functions from the new Greenplum Database release. See the
+        Greenplum Database release notes for upgrade prerequisites and procedures.</note>
+      <p>Install the Oracle Compatibility Functions in each of your databases using the
+          <codeph>CREATE EXTENSION</codeph> SQL command.</p>
       <codeblock>$ psql -d <varname>db_name</varname> -c 'CREATE EXTENSION orafce;'</codeblock>
       <note type="note" class="- topic/note ">Some Oracle Compatibility Functions reside in the
           <codeph class="+ topic/ph pr-d/codeph ">oracle</codeph> schema. To access them set the
@@ -51,9 +56,12 @@
         example, this command sets the default search path for a database to include the
           <codeph>oracle</codeph>
         schema:<codeblock>ALTER DATABASE <varname>db_name</varname> SET <varname>search_path</varname> = "$user", public, oracle;</codeblock></note>
-      <p>To uninstall Oracle Compatibility Functions drop the <codeph>orafce</codeph> extension
+      <p>To uninstall Oracle Compatibility Functions, drop the <codeph>orafce</codeph> extension
         using the <codeph>DROP EXTENSION</codeph> SQL command.</p>
       <codeblock>$ psql -d <varname>db_name</varname> -c 'DROP EXTENSION orafce;'</codeblock>
+      <p>If you are uninstalling the compatibility functions from a Greenplum Database 5.x release,
+        use this command instead:</p>
+      <codeblock>$ psql -d db_name -f $GPHOME/share/postgresql/contrib/uninstall_orafunc.sql</codeblock>
     </body>
   </topic>
   <topic id="topic3" xml:lang="en" ditaarch:DITAArchVersion="1.1"
@@ -116,7 +124,7 @@ SELECT DECODE(date1, '2001-11-11', '2001-01-01') FROM TEST;</codeblock><p>Greenp
       <ul id="ul_njs_p4l_4gb">
         <li>The <codeph>decode()</codeph> function is removed from the Greenplum Database Oracle
           Compatibility Functions. The Greenplum Database parser converts <codeph>decode()</codeph>
-          function calls to <codeph>case</codeph> statements.</li>
+          -          function calls to <codeph>case</codeph> statements.</li>
         <li>The functions in the Oracle Compatibility Functions <codeph>dbms_pipe</codeph> package
           execute only on the Greenplum Database master host.</li>
         <li>The functions in the Oracle Compatibility Functions <codeph>dbms_alert</codeph> package
