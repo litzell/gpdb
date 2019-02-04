@@ -8,8 +8,10 @@
         <section id="section2">
             <title>Synopsis</title>
             <codeblock id="sql_command_synopsis">CREATE [ OR REPLACE ] [ PROCEDURAL ] LANGUAGE <varname>name</varname>
-                CREATE [ OR REPLACE ] [ TRUSTED ] [ PROCEDURAL ] LANGUAGE <varname>name</varname>
-                HANDLER <varname>call_handler</varname> [ INLINE <varname>inline_handler</varname> ] [ VALIDATOR <varname>valfunction</varname> ]
+
+CREATE [ OR REPLACE ] [ TRUSTED ] [ PROCEDURAL ] LANGUAGE <varname>name</varname>
+    HANDLER <varname>call_handler</varname> [ INLINE <varname>inline_handler</varname> ] 
+   [ VALIDATOR <varname>valfunction</varname> ]
             </codeblock>
         </section>
         <section id="section3">

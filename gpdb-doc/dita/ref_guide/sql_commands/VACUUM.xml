@@ -9,7 +9,7 @@
       <title>Synopsis</title>
       <codeblock id="sql_command_synopsis">VACUUM [({ FULL | FREEZE | VERBOSE | ANALYZE } [, ...])] [<varname>table</varname> [(<varname>column</varname> [, ...] )]]
         
- VACUUM [FULL] [FREEZE] [VERBOSE] [<varname>table</varname>]
+VACUUM [FULL] [FREEZE] [VERBOSE] [<varname>table</varname>]
 
 VACUUM [FULL] [FREEZE] [VERBOSE] ANALYZE
               [<varname>table</varname> [(<varname>column</varname> [, ...] )]]</codeblock>
@@ -61,8 +61,9 @@ VACUUM [FULL] [FREEZE] [VERBOSE] ANALYZE
       </p>
       <note type="important">For information on the use of <codeph>VACUUM</codeph>, <codeph>VACUUM
           FULL</codeph>, and <codeph>VACUUM ANALYZE</codeph>, see <xref href="#topic1/section6"
-          type="section" format="dita"/>
+          type="section" format="dita"/>.
       </note>
+  
       <sectiondiv id="section4">
         <b>Outputs</b>
         <p>When <codeph>VERBOSE</codeph> is specified, <codeph>VACUUM</codeph> emits progress
