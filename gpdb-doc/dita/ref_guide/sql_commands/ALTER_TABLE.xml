@@ -327,11 +327,11 @@ ALTER TABLE <varname>name</varname>
                                                 If the <codeph>ONLY</codeph> keyword is not used,
                                                 the operation will be performed on the named table
                                                 and any child table partitions associated with that
-                                                table. Adding or dropping a column, or changing a
-                                                column's type in a parent or descendant table only
-                                                is not permitted. The parent table and its
-                                                descendents must always have the same columns and
-                                                types.</pd>
+                                                table. <note>Adding or dropping a column, or
+                                                  changing a column's type, in a parent or
+                                                  descendant table only is not permitted. The parent
+                                                  table and its descendents must always have the
+                                                  same columns and types.</note></pd>
                                 </plentry>
                                 <plentry>
                                         <pt>
