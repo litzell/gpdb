@@ -57,19 +57,18 @@ ALTER ROLE <varname>name</varname> [ [WITH] <varname>option</varname> [ ... ] ]<
           same as using the command <codeph>ALTER DATABASE...SET...</codeph>. <p>Whenever the role
             subsequently starts a new session, the specified value becomes the session default,
             overriding whatever setting is present in the server configuration file
-              (<codeph>postgresql.conf</codeph>) or has been received from the postgres command
+              (<codeph>postgresql.conf</codeph>) or has been received from the <codeph>postgres</codeph> command
             line. This only happens at login time; executing <xref href="SET_ROLE.xml#topic1">SET
               ROLE</xref> or <xref href="SET_SESSION_AUTHORIZATION.xml#topic1">SET SESSION
                 AUTHORIZATION</xref> does not cause new configuration values to be set. </p>   
-          <p>Settings set for all databases are overridden by database-specific settings
-          attached to a role.</p>
+          <p>Database-specific settings attched to a role override settings for all databases.</p>
           <p>For
             a role without <codeph>LOGIN</codeph> privilege, session defaults have no effect.
             Ordinary roles can change their own session defaults. Superusers can change anyone's
             session defaults. Roles having <codeph>CREATEROLE</codeph> privilege can change defaults
             for non-superuser roles. Ordinary roles can only set defaults for themselves. Certain 
             configuration variables cannot be set this way, or can only be set if a superuser 
-            issues the command. See the <i>Greenplum Database Administrator Guide</i> for
+            issues the command. See the <i>Greenplum Database Reference Guide</i> for
             information about all user-settable configuration parameters.</p></li>
         <li id="av137058"><b>RESOURCE QUEUE</b> — Assigns the role to a resource
           queue. The role would then be subject to the limits assigned to the resource queue when

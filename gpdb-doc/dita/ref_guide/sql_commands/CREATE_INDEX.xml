@@ -311,7 +311,7 @@
                         <codeblock>CREATE UNIQUE INDEX title_idx ON films (title) WITH 
 (fillfactor = 70);</codeblock>
                         <p>To create a GIN index with fast updates disabled:</p>
-                        <codeblock>CREATE INDEX gin_idx ON documents_table USING gin(locations) WITH (fastupdate = off);</codeblock>
+                        <codeblock>CREATE INDEX gin_idx ON documents_table USING gin (locations) WITH (fastupdate = off);</codeblock>
                         <p>To create an index on the column <codeph>code</codeph> in the table
                                         <codeph>films</codeph> and have the index reside in the
                                 tablespace <codeph>indexspace</codeph>:</p>

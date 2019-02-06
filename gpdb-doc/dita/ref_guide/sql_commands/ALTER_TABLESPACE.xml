@@ -25,7 +25,7 @@ or <varname>gp_</varname> (reserved for system tablespaces). </pd></plentry><ple
                                 href="../config_params/guc-list.xml#seq_page_cost" format="dita" scope="local"
                                 >seq-page-cost</xref>, <xref
                                 href="../config_params/guc-list.xml#random_page_cost"
-                                format="dita" scope="local">random-page-cost</xref>).This may be useful if one
+                                format="dita" scope="local">random-page-cost</xref>). This may be useful if one
                         tablespace is located on a disk which is faster or slower than the remainder
                         of the I/O subsystem. </pd>
         </plentry></parml></section><section id="section5"><title>Examples</title><p>Rename tablespace <codeph>index_space</codeph> to <codeph>fast_raid</codeph>:</p><codeblock>ALTER TABLESPACE index_space RENAME TO fast_raid;</codeblock><p>Change the owner of tablespace <codeph>index_space</codeph>:</p><codeblock>ALTER TABLESPACE index_space OWNER TO mary;</codeblock></section><section id="section6"><title>Compatibility</title><p>There is no <codeph>ALTER TABLESPACE</codeph> statement in the SQL standard.</p></section><section id="section7"><title>See Also</title><p><codeph><xref href="./CREATE_TABLESPACE.xml#topic1" type="topic" format="dita"/></codeph>,

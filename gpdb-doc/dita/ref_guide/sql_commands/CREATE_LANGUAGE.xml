@@ -182,8 +182,8 @@ CREATE LANGUAGE plsample
             <p><codeph><xref href="ALTER_LANGUAGE.xml#topic1" type="topic" format="dita"/></codeph>,
                         <codeph><xref href="CREATE_FUNCTION.xml#topic1" type="topic" format="dita"
                     /></codeph>, <codeph><xref href="./DROP_LANGUAGE.xml#topic1" type="topic"
-                        format="dita"/></codeph>, <codeph><xref href="./GRANT#topic1" type="topic"
-                            format="dita"/></codeph>
+                        format="dita"/></codeph>, <codeph><xref href="./GRANT.xml#topic1"
+                        type="topic" format="dita"/></codeph>
                 <codeph><xref href="DO.xml#topic1"/></codeph></p>
         </section>
     </body>
