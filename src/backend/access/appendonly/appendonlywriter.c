@@ -31,6 +31,7 @@
 #include "storage/lmgr.h"
 #include "utils/builtins.h"
 #include "utils/faultinjector.h"
+#include "utils/guc.h"
 #include "utils/int8.h"
 #include "utils/lsyscache.h"
 #include "utils/snapmgr.h"
@@ -1601,11 +1602,6 @@ UpdateMasterAosegTotalsFromSegments(Relation parentrel,
 
 			Assert(RelationIsAoCols(parentrel));
 
-			/* GPDB_94_MERGE_FIXME: We used to call this with SnapshotNow,
-			 * even though in the row-oriented case above, we use
-			 * appendOnlyMetaDataSnapshot. Was that on purpose?
-			 * I changed this to also use appendOnlyMetaDataSnapshot.
-			 */
 			seginfo = GetAOCSFileSegInfo(parentrel,
 										 appendOnlyMetaDataSnapshot, qe_segno);
 

@@ -25,6 +25,7 @@
 #include "access/xlog_internal.h"
 #include "cdb/cdbappendonlyam.h"
 #include "cdb/cdbdisp.h"
+#include "cdb/cdbhash.h"
 #include "cdb/cdbsreh.h"
 #include "cdb/cdbvars.h"
 #include "cdb/memquota.h"
@@ -38,7 +39,6 @@
 #include "postmaster/syslogger.h"
 #include "postmaster/fts.h"
 #include "replication/walsender.h"
-#include "storage/bfz.h"
 #include "storage/proc.h"
 #include "tcop/idle_resource_cleaner.h"
 #include "utils/builtins.h"
@@ -72,12 +72,11 @@
 /*
  * Assign/Show hook functions defined in this module
  */
-static bool check_gp_workfile_compress_algorithm(char **newval, void **extra, GucSource source);
-static void assign_gp_workfile_compress_algorithm(const char *newval, void *extra);
 static bool check_optimizer(bool *newval, void **extra, GucSource source);
 static bool check_verify_gpfdists_cert(bool *newval, void **extra, GucSource source);
 static bool check_dispatch_log_stats(bool *newval, void **extra, GucSource source);
 static bool check_gp_hashagg_default_nbatches(int *newval, void **extra, GucSource source);
+static bool check_gp_workfile_compression(bool *newval, void **extra, GucSource source);
 
 /* Helper function for guc setter */
 bool gpvars_check_gp_resqueue_priority_default_value(char **newval,
@@ -220,14 +219,12 @@ bool create_restartpoint_on_ckpt_record_replay = false;
 
 char	   *data_directory;
 
-static char *gp_resource_manager_str;
-
 /*
- * These variables are all dummies that don't do anything, except in some
+ * This variable is a dummy that doesn't do anything, except in some
  * cases provide the value for SHOW to display.  The real state is elsewhere
  * and is kept in sync by assign_hooks.
  */
-static char *gp_workfile_compress_algorithm_str;
+static char *gp_resource_manager_str;
 
 /* Backoff-related GUCs */
 bool		gp_enable_resqueue_priority;
@@ -275,13 +272,6 @@ bool		gp_allow_rename_relation_without_lock = false;
 
 /* ignore EXCLUDE clauses in window spec for backwards compatibility */
 bool		gp_ignore_window_exclude = false;
-
-/* Hadoop Integration GUCs */
-char	   *gp_hadoop_connector_jardir;
-char	   *gp_hadoop_connector_version = "";	/* old GUC; now it's a global
-												 * var. */
-char	   *gp_hadoop_target_version;
-char	   *gp_hadoop_home;
 
 /* Time based authentication GUC */
 char	   *gp_auth_time_override_str = NULL;
@@ -467,6 +457,9 @@ bool		gp_external_enable_filter_pushdown = true;
 bool		gp_enable_mk_sort = true;
 bool		gp_enable_motion_mk_sort = true;
 
+/* Enable GDD */
+bool		gp_enable_global_deadlock_detector = false;
+
 static const struct config_enum_entry gp_log_format_options[] = {
 	{"text", 0},
 	{"csv", 1},
@@ -568,12 +561,6 @@ static const struct config_enum_entry gp_resqueue_memory_policies[] = {
 	{NULL, 0}
 };
 
-static const struct config_enum_entry gp_workfile_type_hashjoin_options[] = {
-	{"bfz", BFZ},
-	{"buffile", BUFFILE},
-	{NULL, 0}
-};
-
 static const struct config_enum_entry gp_gpperfmon_log_alert_level[] = {
 	{"none", GPPERFMON_LOG_ALERT_LEVEL_NONE},
 	{"warning", GPPERFMON_LOG_ALERT_LEVEL_WARNING},
@@ -630,6 +617,17 @@ struct config_bool ConfigureNamesBool_gp[] =
 			GUC_SUPERUSER_ONLY | GUC_NO_SHOW_ALL | GUC_NOT_IN_SAMPLE
 		},
 		&gp_maintenance_conn,
+		false,
+		NULL, NULL, NULL
+	},
+
+	{
+		{"gp_use_legacy_hashops", PGC_USERSET, COMPAT_OPTIONS_PREVIOUS,
+			gettext_noop("If set, new tables will use legacy distribution hashops by default"),
+			NULL,
+			GUC_NO_SHOW_ALL | GUC_NOT_IN_SAMPLE
+		},
+		&gp_use_legacy_hashops,
 		false,
 		NULL, NULL, NULL
 	},
@@ -695,17 +693,6 @@ struct config_bool ConfigureNamesBool_gp[] =
 			gettext_noop("If false, planner does not copy predicates.")
 		},
 		&gp_enable_predicate_propagation,
-		true,
-		NULL, NULL, NULL
-	},
-	{
-		{"gp_workfile_checksumming", PGC_USERSET, QUERY_TUNING_OTHER,
-			gettext_noop("Enable checksumming on the executor work files in order to "
-				"catch possible faulty writes caused by your disk drivers."),
-			NULL,
-			GUC_GPDB_ADDOPT
-		},
-		&gp_workfile_checksumming,
 		true,
 		NULL, NULL, NULL
 	},
@@ -1155,6 +1142,17 @@ struct config_bool ConfigureNamesBool_gp[] =
 		&Gp_write_shared_snapshot,
 		false,
 		NULL, assign_gp_write_shared_snapshot, NULL
+	},
+
+	{
+		{"gp_workfile_compression", PGC_USERSET, RESOURCES_DISK,
+			gettext_noop("Enables compression of temporary files."),
+			NULL,
+			GUC_GPDB_ADDOPT
+		},
+		&gp_workfile_compression,
+		false,
+		check_gp_workfile_compression, NULL, NULL
 	},
 
 	{
@@ -3023,6 +3021,15 @@ struct config_bool ConfigureNamesBool_gp[] =
 		false, NULL, NULL
 	},
 
+	{
+		{"gp_enable_global_deadlock_detector", PGC_POSTMASTER, CUSTOM_OPTIONS,
+			gettext_noop("Enables the Global Deadlock Detector."),
+			NULL
+		},
+		&gp_enable_global_deadlock_detector,
+		false, NULL, NULL
+	},
+
 	/* End-of-list marker */
 	{
 		{NULL, 0, 0, NULL, NULL}, NULL, false, NULL, NULL
@@ -3230,6 +3237,28 @@ struct config_int ConfigureNamesInt_gp[] =
 		},
 		&gp_workfile_limit_files_per_query,
 		100000, 0, INT_MAX,
+		NULL, NULL, NULL
+	},
+
+	{
+		{"gp_workfile_limit_per_segment", PGC_POSTMASTER, RESOURCES,
+			gettext_noop("Maximum disk space (in KB) used for workfiles per segment."),
+			gettext_noop("0 for no limit. Current query is terminated when limit is exceeded."),
+			GUC_UNIT_KB
+		},
+		&gp_workfile_limit_per_segment,
+		0, 0, INT_MAX,
+		NULL, NULL, NULL
+	},
+
+	{
+		{"gp_workfile_limit_per_query", PGC_USERSET, RESOURCES,
+			gettext_noop("Maximum disk space (in KB) used for workfiles per query per segment."),
+			gettext_noop("0 for no limit. Current query is terminated when limit is exceeded."),
+			GUC_GPDB_ADDOPT | GUC_UNIT_KB
+		},
+		&gp_workfile_limit_per_query,
+		0, 0, INT_MAX,
 		NULL, NULL, NULL
 	},
 
@@ -4007,17 +4036,6 @@ struct config_int ConfigureNamesInt_gp[] =
 		NULL, NULL, NULL
 	},
 
-	{
-		{"gp_workfile_bytes_to_checksum", PGC_USERSET, GP_ARRAY_TUNING,
-			gettext_noop("The number of bytes to be checksummed in every WORKFILE_SAFEWRITE_SIZE bytes."),
-			NULL,
-			GUC_NO_SHOW_ALL | GUC_NOT_IN_SAMPLE | GUC_GPDB_ADDOPT
-		},
-		&gp_workfile_bytes_to_checksum,
-		16, 0, WORKFILE_SAFEWRITE_SIZE,
-		NULL, NULL, NULL
-	},
-
 	/* for pljava */
 	{
 		{"pljava_statement_cache_size", PGC_SUSET, CUSTOM_OPTIONS,
@@ -4279,28 +4297,6 @@ struct config_real ConfigureNamesReal_gp[] =
 	},
 
 	{
-		{"gp_workfile_limit_per_segment", PGC_POSTMASTER, RESOURCES,
-			gettext_noop("Maximum disk space (in KB) used for workfiles per segment."),
-			gettext_noop("0 for no limit. Current query is terminated when limit is exceeded."),
-			GUC_UNIT_KB
-		},
-		&gp_workfile_limit_per_segment,
-		0, 0, SIZE_MAX / 1024,
-		NULL, NULL, NULL
-	},
-
-	{
-		{"gp_workfile_limit_per_query", PGC_USERSET, RESOURCES,
-			gettext_noop("Maximum disk space (in KB) used for workfiles per query per segment."),
-			gettext_noop("0 for no limit. Current query is terminated when limit is exceeded."),
-			GUC_GPDB_ADDOPT | GUC_UNIT_KB
-		},
-		&gp_workfile_limit_per_query,
-		0, 0, SIZE_MAX / 1024,
-		NULL, NULL, NULL
-	},
-
-	{
 		{"gp_motion_cost_per_row", PGC_USERSET, QUERY_TUNING_COST,
 			gettext_noop("Sets the planner's estimate of the cost of "
 						 "moving a row between worker processes."),
@@ -4459,17 +4455,6 @@ struct config_real ConfigureNamesReal_gp[] =
 struct config_string ConfigureNamesString_gp[] =
 {
 	{
-		{"gp_workfile_compress_algorithm", PGC_USERSET, DEVELOPER_OPTIONS,
-			gettext_noop("Specify the compression algorithm that work files in the query executor use."),
-			gettext_noop("Valid values are \"NONE\", \"ZLIB\"."),
-			GUC_GPDB_ADDOPT
-		},
-		&gp_workfile_compress_algorithm_str,
-		"none",
-		check_gp_workfile_compress_algorithm, assign_gp_workfile_compress_algorithm, NULL
-	},
-
-	{
 		{"memory_profiler_run_id", PGC_USERSET, DEVELOPER_OPTIONS,
 			gettext_noop("Set the unique run ID for memory profiling"),
 			gettext_noop("Any string is acceptable"),
@@ -4587,39 +4572,6 @@ struct config_string ConfigureNamesString_gp[] =
 			GUC_GPDB_ADDOPT | GUC_NOT_IN_SAMPLE
 		},
 		&pljava_classpath,
-		"",
-		NULL, NULL, NULL
-	},
-
-	{
-		{"gp_hadoop_connector_jardir", PGC_USERSET, CUSTOM_OPTIONS,
-			gettext_noop("The directory of the Hadoop connector JAR, relative to $GPHOME."),
-			NULL,
-			GUC_GPDB_ADDOPT | GUC_NO_SHOW_ALL | GUC_NOT_IN_SAMPLE
-		},
-		&gp_hadoop_connector_jardir,
-		"lib//hadoop",
-		NULL, NULL, NULL
-	},
-
-	{
-		{"gp_hadoop_target_version", PGC_USERSET, CUSTOM_OPTIONS,
-			gettext_noop("The distro/version of Hadoop that external table is connecting to."),
-			gettext_noop("See release notes or gppkg readme for details."),
-			GUC_GPDB_ADDOPT
-		},
-		&gp_hadoop_target_version,
-		"hadoop",
-		NULL, NULL, NULL
-	},
-
-	{
-		{"gp_hadoop_home", PGC_USERSET, CUSTOM_OPTIONS,
-			gettext_noop("The location where Hadoop is installed in each segment."),
-			NULL,
-			GUC_GPDB_ADDOPT
-		},
-		&gp_hadoop_home,
 		"",
 		NULL, NULL, NULL
 	},
@@ -4918,17 +4870,6 @@ struct config_enum ConfigureNamesEnum_gp[] =
 	},
 
 	{
-		{"gp_workfile_type_hashjoin", PGC_USERSET, QUERY_TUNING_OTHER,
-			gettext_noop("Specify the type of work files to use for executing hash join plans."),
-			gettext_noop("Valid values are \"BFZ\", \"BUFFILE\"."),
-			GUC_GPDB_ADDOPT | GUC_NO_SHOW_ALL | GUC_NOT_IN_SAMPLE
-		},
-		&gp_workfile_type_hashjoin,
-		BFZ, gp_workfile_type_hashjoin_options,
-		NULL, NULL, NULL
-	},
-
-	{
 		{"gpperfmon_log_alert_level", PGC_USERSET, LOGGING,
 			gettext_noop("Specify the log alert level used by gpperfmon."),
 			gettext_noop("Valid values are 'none', 'warning', 'error', 'fatal', 'panic'.")
@@ -4995,26 +4936,6 @@ check_gp_resource_group_bypass(bool *newval, void **extra, GucSource source)
 
 	GUC_check_errmsg("SET gp_resource_group_bypass cannot run inside a transaction block");
 	return false;
-}
-
-static bool
-check_gp_workfile_compress_algorithm(char **newval, void **extra, GucSource source)
-{
-	int			i = bfz_string_to_compression(*newval);
-
-	if (i == -1)
-		return false;			/* fail */
-	else
-		return true;				/* OK */
-}
-
-static void
-assign_gp_workfile_compress_algorithm(const char *newval, void *extra)
-{
-	int			i = bfz_string_to_compression(newval);
-
-	Assert(i != -1);
-	gp_workfile_compress_algorithm = i;
 }
 
 static bool
@@ -5275,4 +5196,18 @@ lookup_autostats_mode_by_value(GpAutoStatsModeValue val)
 
 	elog(ERROR, "could not find autostats mode %d", val);
 	return NULL;				/* silence compiler */
+}
+
+
+static bool
+check_gp_workfile_compression(bool *newval, void **extra, GucSource source)
+{
+#ifndef HAVE_LIBZSTD
+	if (*newval)
+	{
+		GUC_check_errmsg("workfile compresssion is not supported by this build");
+		return false;
+	}
+#endif
+	return true;
 }

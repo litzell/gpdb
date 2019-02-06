@@ -1330,7 +1330,7 @@ typedef struct ReshuffleExprState
 {
 	ExprState	xprstate;
 	ExprState  *arg;
-	List	   *hashKeys;
+	List	   *hashKeys;		/* ExprState nodes */
 	struct CdbHash *cdbhash;	/* hash api object */
 } ReshuffleExprState;
 
@@ -2556,9 +2556,6 @@ typedef struct AggState
 	bool	   *replIsnull;
 	bool	   *doReplace;
 
-	/* set if the operator created workfiles */
-	bool		workfiles_created;
-
 	/*
 	 * Most executor nodes in GPDB don't support SRFs in target lists, the
 	 * planner tries to insulate them from SRFs by adding Result nodes. But
@@ -2852,7 +2849,7 @@ typedef struct MotionState
 
 	/* For motion send */
 	bool		sentEndOfStream;	/* set when end-of-stream has successfully been sent */
-	List	   *hashExpr;		/* state struct used for evaluating the hash expressions */
+	List	   *hashExprs;		/* state struct used for evaluating the hash expressions */
 	struct CdbHash *cdbhash;	/* hash api object */
 
 	/* For Motion recv */

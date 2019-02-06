@@ -422,7 +422,7 @@ create table distby_with_constraint21 (col1 int4, col2 int4, col3 int4, UNIQUE  
 create table distby_with_constraint22 (col1 int4, col2 int4, col3 int4, UNIQUE      (col1, col2), PRIMARY KEY (col3, col1));
 
 -- Check what distribution key was chosen for all the cases above.
-select c.relname, policytype, attrnums from pg_class c, gp_distribution_policy p where c.oid = p.localoid and relname LIKE 'distby_with_%' order by relname;
+select c.relname, policytype, distkey from pg_class c, gp_distribution_policy p where c.oid = p.localoid and relname LIKE 'distby_with_%' order by relname;
 
 
 --
@@ -508,3 +508,16 @@ create temporary table b as select generate_series(2, 6) as i distributed by (i)
 create temporary table c as select generate_series(3, 7) as i distributed by (i);
 explain (costs off) select * from a full join b on (a.i=b.i) full join c on (b.i=c.i);
 select * from a full join b on (a.i=b.i) full join c on (b.i=c.i);
+
+
+--
+-- 'xid' datatype has a hash opclass, but no b-tree operators. Test that.
+--
+-- While we don't particularly care about 'xid' datatype as such, let alone
+-- using it as distribution key, this case might arise for user-defined
+-- datatypes, too.
+--
+create table xidtab (x xid) distributed by (x);
+insert into xidtab select g::text::xid from generate_series(1,5) g;
+select * from xidtab a, xidtab b, xidtab c where a.x=b.x and b.x = c.x;
+select * from xidtab group by x;

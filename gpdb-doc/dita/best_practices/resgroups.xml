@@ -62,10 +62,10 @@
         </li>
         <li>
           <p>
-            <b>gp_workfile_compress_algorithm</b>
+            <b>gp_workfile_compression</b>
           </p>
           <p>If there are numerous spill files then set
-              <codeph>gp_workfile_compress_algorithm</codeph> to compress the spill files.
+              <codeph>gp_workfile_compression</codeph> to compress the spill files.
             Compressing spill files may help to avoid overloading the disk subsystem with IO
             operations. </p>
         </li>

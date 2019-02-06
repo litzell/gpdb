@@ -214,6 +214,7 @@
             <li>
               <xref href="#gp_enable_fast_sri"/>
             </li>
+            <li><xref href="#gp_enable_global_deadlock_detector"/></li>
             <li>
               <xref href="#gp_enable_gpperfmon"/>
             </li>
@@ -280,12 +281,6 @@
             </li>
             <li>
               <xref href="#gpperfmon_log_alert_level"/>
-            </li>
-            <li otherprops="oss">
-              <xref href="#gp_hadoop_home"/>
-            </li>
-            <li>
-              <xref href="#gp_hadoop_target_version"/>
             </li>
             <li>
               <xref href="#gp_hashjoin_tuples_per_bucket"/>
@@ -422,10 +417,7 @@
               <xref href="#gp_vmem_protect_segworker_cache_limit"/>
             </li>
             <li>
-              <xref href="#gp_workfile_checksumming"/>
-            </li>
-            <li>
-              <xref href="#gp_workfile_compress_algorithm"/>
+              <xref href="#gp_workfile_compression"/>
             </li>
             <li>
               <xref href="#gp_workfile_limit_files_per_query"/>
@@ -3013,6 +3005,47 @@
       </table>
     </body>
   </topic>
+  <topic id="gp_enable_global_deadlock_detector">
+    <title>gp_enable_global_deadlock_detector</title>
+    <body>
+      <p>Controls whether the Greenplum Database Global Deadlock Detector is enabled to manage
+        concurrent <codeph>UPDATE</codeph> and <codeph>DELETE</codeph> operations on heap tables to
+        improve performance. See <xref href="../../admin_guide/dml.xml#topic_gdd"/><ph
+          otherprops="op-print"> in the <cite>Greenplum Database Administrator Guide</cite></ph>.
+        The default is <codeph>off</codeph>, the Global Deadlock Detector is disabled. </p>
+      <p>If the Global Deadlock Detector is disabled (the default), Greenplum Database executes
+        these types of concurrent operations serially.</p>
+      <ul id="ul_trv_qqr_qgb">
+        <li>Concurrent update operations on a table distribution key</li>
+        <li>Concurrent update operations where a subplan in a query plan contains a motion
+          operation</li>
+      </ul>
+      <p>If the Global Deadlock Detector is enabled, Greenplum Database returns an error for the
+        concurrent operations if a deadlock is detected.</p>
+      <p>The parameter can be set for a database system, an individual database, or a session.</p>
+      <table id="table_vcm_p3r_qgb">
+        <tgroup cols="3">
+          <colspec colnum="1" colname="col1" colwidth="1*"/>
+          <colspec colnum="2" colname="col2" colwidth="1*"/>
+          <colspec colnum="3" colname="col3" colwidth="1*"/>
+          <thead>
+            <row>
+              <entry colname="col1">Value Range</entry>
+              <entry colname="col2">Default</entry>
+              <entry colname="col3">Set Classifications</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry colname="col1">Boolean</entry>
+              <entry colname="col2">off</entry>
+              <entry colname="col3">master<p>session</p><p>restart</p></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </body>
+  </topic>
   <topic id="gp_enable_gpperfmon">
     <title>gp_enable_gpperfmon</title>
     <body>
@@ -3782,61 +3815,6 @@
       </table>
     </body>
   </topic>
-  <topic id="gp_hadoop_home" otherprops="oss">
-    <title>gp_hadoop_home</title>
-    <body>
-      <p>Specifies the installation directory for the Greenplum Database <codeph>gphdfs</codeph>
-        Hadoop target.</p>
-      <table id="gp_hadoop_home_table">
-        <tgroup cols="3">
-          <colspec colnum="1" colname="col1" colwidth="1*"/>
-          <colspec colnum="2" colname="col2" colwidth="1*"/>
-          <colspec colnum="3" colname="col3" colwidth="1*"/>
-          <thead>
-            <row>
-              <entry colname="col1">Value Range</entry>
-              <entry colname="col2">Default</entry>
-              <entry colname="col3">Set Classifications</entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry colname="col1">Valid directory name</entry>
-              <entry colname="col2">Value of <codeph>HADOOP_HOME</codeph></entry>
-              <entry colname="col3">local<p>session</p><p>reload</p></entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-    </body>
-  </topic>
-  <topic id="gp_hadoop_target_version">
-    <title>gp_hadoop_target_version</title>
-    <body>
-      <p>The installed version of the Greenplum Database <codeph>gphdfs</codeph> Hadoop target.</p>
-      <table id="gp_hadoop_target_version_table">
-        <tgroup cols="3">
-          <colspec colnum="1" colname="col1" colwidth="1*"/>
-          <colspec colnum="2" colname="col2" colwidth="1*"/>
-          <colspec colnum="3" colname="col3" colwidth="1*"/>
-          <thead>
-            <row>
-              <entry colname="col1">Value Range</entry>
-              <entry colname="col2">Default</entry>
-              <entry colname="col3">Set Classifications</entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry colname="col1">cdh<p>hadoop</p><p>hdp</p><p>mpr</p></entry>
-              <entry colname="col2">hadoop</entry>
-              <entry colname="col3">local<p>session</p><p>reload</p></entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-    </body>
-  </topic>
   <topic id="gp_hashjoin_tuples_per_bucket">
     <title>gp_hashjoin_tuples_per_bucket</title>
     <body>
@@ -3868,8 +3846,9 @@
   <topic id="gp_ignore_error_table">
     <title>gp_ignore_error_table (Deprecated)</title>
     <body>
-      <p>Controls Greenplum Database behavior when the deprecated <codeph>INTO ERROR TABLE</codeph> clause is
-        specified in a <codeph>CREATE EXTERNAL TABLE</codeph> or <codeph>COPY</codeph> command.</p>
+      <p>Controls Greenplum Database behavior when the deprecated <codeph>INTO ERROR TABLE</codeph>
+        clause is specified in a <codeph>CREATE EXTERNAL TABLE</codeph> or <codeph>COPY</codeph>
+        command.</p>
       <p>The default value is <codeph>false</codeph>, Greenplum Database returns an error if the
           <codeph>INTO ERROR TABLE</codeph> clause is specified in a command. </p>
       <p>If the value is <codeph>true</codeph>, Greenplum Database ignores the clause, issues a
@@ -3882,9 +3861,9 @@
         you run applications that execute <codeph>CREATE EXTERNAL TABLE</codeph> or
           <codeph>COPY</codeph> commands that include the Greenplum Database 4.3.x <codeph>INTO
           ERROR TABLE</codeph> clause.</p>
-      <p>The <codeph>INTO ERROR TABLE</codeph> clause was deprecated and removed in Greenplum Database 5.
-        In Greenplum Database 7 this GUC will be removed as well causing all <codeph>INTO ERROR TABLE</codeph>
-        invocations be yield a syntax error.</p>
+      <p>The <codeph>INTO ERROR TABLE</codeph> clause was deprecated and removed in Greenplum
+        Database 5. In Greenplum Database 7, this parameter will be removed as well, causing all
+          <codeph>INTO ERROR TABLE</codeph> invocations be yield a syntax error.</p>
       <table id="table_hnf_2v5_bdb">
         <tgroup cols="3">
           <colspec colnum="1" colname="col1" colwidth="1*"/>
@@ -5290,15 +5269,16 @@
       </table>
     </body>
   </topic>
-  <topic id="gp_workfile_checksumming">
-    <title>gp_workfile_checksumming</title>
+  <topic id="gp_workfile_compression">
+    <title>gp_workfile_compression</title>
     <body>
-      <p>Adds a checksum value to each block of a work file (or spill file) used by
-          <codeph>HashAgg</codeph> and <codeph>HashJoin</codeph> query operators. This adds an
-        additional safeguard from faulty OS disk drivers writing corrupted blocks to disk. When a
-        checksum operation fails, the query will cancel and rollback rather than potentially writing
-        bad data to disk. </p>
-      <table id="gp_workfile_checksumming_table">
+      <p>Specifies whether the temporary files created, when a hash aggregation or hash join
+         operation spills to disk, are compressed. If enabled, zstd
+        library must be installed on all hosts in the Greenplum Database cluster. </p>
+      <p>If your Greenplum Database installation uses serial ATA (SATA) disk drives, enabling
+        compression might help to avoid overloading the disk
+        subsystem with IO operations.</p>
+      <table id="gp_workfile_compression_table">
         <tgroup cols="3">
           <colspec colnum="1" colname="col1" colwidth="1*"/>
           <colspec colnum="2" colname="col2" colwidth="1*"/>
@@ -5313,39 +5293,7 @@
           <tbody>
             <row>
               <entry colname="col1">Boolean</entry>
-              <entry colname="col2">on</entry>
-              <entry colname="col3">master<p>session</p><p>reload</p></entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-    </body>
-  </topic>
-  <topic id="gp_workfile_compress_algorithm">
-    <title>gp_workfile_compress_algorithm</title>
-    <body>
-      <p>When a hash aggregation or hash join operation spills to disk during query processing,
-        specifies the compression algorithm to use on the spill files. If using zlib, the zlib
-        library must be installed on all hosts in the Greenplum Database cluster. </p>
-      <p>If your Greenplum Database installation uses serial ATA (SATA) disk drives, setting the
-        value of this parameter to <codeph>zlib</codeph> might help to avoid overloading the disk
-        subsystem with IO operations.</p>
-      <table id="gp_workfile_compress_algorithm_table">
-        <tgroup cols="3">
-          <colspec colnum="1" colname="col1" colwidth="1*"/>
-          <colspec colnum="2" colname="col2" colwidth="1*"/>
-          <colspec colnum="3" colname="col3" colwidth="1*"/>
-          <thead>
-            <row>
-              <entry colname="col1">Value Range</entry>
-              <entry colname="col2">Default</entry>
-              <entry colname="col3">Set Classifications</entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry colname="col1">none<p>zlib</p></entry>
-              <entry colname="col2">none</entry>
+              <entry colname="col2">off</entry>
               <entry colname="col3">master<p>session</p><p>reload</p></entry>
             </row>
           </tbody>

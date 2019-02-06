@@ -116,8 +116,6 @@
             <topicref href="guc-list.xml#gp_global_deadlock_detector_period"/>
             <topicref href="guc-list.xml#gp_gpperfmon_send_interval"/>
             <topicref href="guc-list.xml#gpperfmon_log_alert_level"/>
-            <topicref href="guc-list.xml#gp_hadoop_home"/>
-            <topicref href="guc-list.xml#gp_hadoop_target_version"/>
             <topicref href="guc-list.xml#gp_hashjoin_tuples_per_bucket"/>
             <topicref href="guc-list.xml#gp_ignore_error_table"/>
             <topicref href="guc-list.xml#topic_lvm_ttc_3p"/>
@@ -166,8 +164,7 @@
             <topicref href="guc-list.xml#gp_vmem_idle_resource_timeout"/>
             <topicref href="guc-list.xml#gp_vmem_protect_limit"/>
             <topicref href="guc-list.xml#gp_vmem_protect_segworker_cache_limit"/>
-            <topicref href="guc-list.xml#gp_workfile_checksumming"/>
-            <topicref href="guc-list.xml#gp_workfile_compress_algorithm"/>
+            <topicref href="guc-list.xml#gp_workfile_compression"/>
             <topicref href="guc-list.xml#gp_workfile_limit_files_per_query"/>
             <topicref href="guc-list.xml#gp_workfile_limit_per_query"/>
             <topicref href="guc-list.xml#gp_workfile_limit_per_segment"/>

@@ -41,28 +41,6 @@ endif
 
 GREP_SED_VAR = $(BLD_TOP)/releng/make/dependencies/ivy.xml | sed -e 's|\(.*\)rev="\(.*\)"[ \t]*conf\(.*\)|\2|'
 
-## ---------------------------------------
-## R-Project support
-## ---------------------------------------
-
-R_VER = $(shell grep 'name="R"' $(GREP_SED_VAR))
-
-ifneq "$(wildcard /opt/releng/tools/R-Project/R/$(R_VER)/$(BLD_ARCH)/lib64)" ""
-R_HOME = /opt/releng/tools/R-Project/R/$(R_VER)/$(BLD_ARCH)/lib64/R
-else
-ifneq "$(wildcard /opt/releng/tools/R-Project/R/$(R_VER)/$(BLD_ARCH)/lib)" ""
-R_HOME = /opt/releng/tools/R-Project/R/$(R_VER)/$(BLD_ARCH)/lib/R
-endif
-endif
-
-display_dependent_vers:
-	@echo ""
-	@echo "======================================================================"
-	@echo " R_HOME ........ : $(R_HOME)"
-	@echo " R_VER ......... : $(R_VER)"
-	@echo " CONFIGFLAGS ... : $(CONFIGFLAGS)"
-	@echo "======================================================================"
-
 ## ----------------------------------------------------------------------
 ## Sync/Clean tools
 ## ----------------------------------------------------------------------
@@ -109,7 +87,7 @@ sync_tools: opt_write_test
 	-Divyrepo.user=$(IVYREPO_USER) -Divyrepo.passwd="$(IVYREPO_PASSWD)" -quiet resolve);
 
 ifeq "$(findstring aix,$(BLD_ARCH))" ""
-	LD_LIBRARY_PATH='' wget --no-check-certificate -q -O - https://github.com/greenplum-db/gporca/releases/download/v3.23.0/bin_orca_centos5_release.tar.gz | tar zxf - -C $(BLD_TOP)/ext/$(BLD_ARCH)
+	LD_LIBRARY_PATH='' wget --no-check-certificate -q -O - https://github.com/greenplum-db/gporca/releases/download/v3.23.3/bin_orca_centos5_release.tar.gz | tar zxf - -C $(BLD_TOP)/ext/$(BLD_ARCH)
 endif
 
 clean_tools: opt_write_test

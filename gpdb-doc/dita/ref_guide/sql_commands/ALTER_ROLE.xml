@@ -123,8 +123,8 @@ ALTER ROLE <varname>name</varname> [ [WITH] <varname>option</varname> [ ... ] ]<
             new session, the specified value becomes the session default, overriding whatever
             setting is present in <codeph>postgresql.conf</codeph> or has been received from the
             command line.</pd>
-          <pd>Role-specific variable settings take effect only at login; <codeph><codeph>SET
-                ROLE</codeph></codeph>  and <codeph><xref
+          <pd>Role-specific variable settings take effect only at login; <codeph>SET
+                ROLE</codeph> and <codeph><xref
                 href="SET_SESSION_AUTHORIZATION.xml#topic1"/></codeph> do not process role-specific
             variable settings. </pd>
           <pd>See <xref href="../config_params/guc_config.xml" type="topic"

@@ -23,18 +23,18 @@ WARNING:  distribution policy of relation "atsdb" already set to (i)
 HINT:  Use ALTER TABLE "atsdb" SET WITH (REORGANIZE=TRUE) DISTRIBUTED BY (i) to force redistribution
 -- should work
 alter table atsdb set distributed randomly;
-select localoid::regclass, attrnums from gp_distribution_policy where localoid = 'atsdb'::regclass;
- localoid | attrnums 
-----------+----------
+select localoid::regclass, distkey from gp_distribution_policy where localoid = 'atsdb'::regclass;
+ localoid | distkey 
+----------+---------
  atsdb    | 
 (1 row)
 
 -- not possible to correctly verify random distribution
 alter table atsdb set distributed by (j);
-select localoid::regclass, attrnums from gp_distribution_policy where localoid = 'atsdb'::regclass;
- localoid | attrnums 
-----------+----------
- atsdb    | {2}
+select localoid::regclass, distkey from gp_distribution_policy where localoid = 'atsdb'::regclass;
+ localoid | distkey 
+----------+---------
+ atsdb    | 2
 (1 row)
 
 -- verify that the data is correctly redistributed by building a fresh
@@ -49,10 +49,10 @@ select gp_segment_id, * from atsdb;
 
 drop table ats_test;
 alter table atsdb set distributed by (i, j);
-select localoid::regclass, attrnums from gp_distribution_policy where localoid = 'atsdb'::regclass;
- localoid | attrnums 
-----------+----------
- atsdb    | {1,2}
+select localoid::regclass, distkey from gp_distribution_policy where localoid = 'atsdb'::regclass;
+ localoid | distkey 
+----------+---------
+ atsdb    | 1 2
 (1 row)
 
 -- verify
@@ -66,10 +66,10 @@ select gp_segment_id, * from atsdb;
 
 drop table ats_test;
 alter table atsdb set distributed by (j, i);
-select localoid::regclass, attrnums from gp_distribution_policy where localoid = 'atsdb'::regclass;
- localoid | attrnums 
-----------+----------
- atsdb    | {2,1}
+select localoid::regclass, distkey from gp_distribution_policy where localoid = 'atsdb'::regclass;
+ localoid | distkey 
+----------+---------
+ atsdb    | 2 1
 (1 row)
 
 -- verify
@@ -195,7 +195,7 @@ select * from atsdb;
 drop table atsdb;
 create view distcheck as select relname as rel, attname from
 gp_distribution_policy g, pg_attribute p, pg_class c
-where g.localoid = p.attrelid and attnum = any(g.attrnums) and
+where g.localoid = p.attrelid and attnum = any(g.distkey) and
 c.oid = p.attrelid;
 -- dropped columns
 create table atsdb (i int, j int, t text, n numeric) distributed by (j);
@@ -1364,3 +1364,39 @@ select * from atsdb;
 ----+----
 (0 rows)
 
+--
+-- ALTER TABLE SET DATA TYPE tests, where the column is part of the
+-- distribution key.
+--
+CREATE TABLE distpol_typechange (i int2) DISTRIBUTED BY (i);
+INSERT INTO distpol_typechange values (123);
+ALTER TABLE distpol_typechange ALTER COLUMN i SET DATA TYPE int4;
+DROP TABLE distpol_typechange;
+CREATE TABLE distpol_typechange (p text) DISTRIBUTED BY (p);
+-- This should throw an error, you can't change the datatype of a distribution
+-- key column.
+INSERT INTO distpol_typechange VALUES ('(1,1)');
+ALTER TABLE distpol_typechange ALTER COLUMN p TYPE point USING p::point;
+ERROR:  cannot alter type of a column used in a distribution policy
+-- unless it's completely empty! But 'point' doesn't have hash a opclass,
+-- so it cannot be part of the distribution key. We silently turn the
+-- table randomly distributed.
+TRUNCATE distpol_typechange;
+ALTER TABLE distpol_typechange ALTER COLUMN p TYPE point USING p::point;
+select policytype, distkey, distclass from gp_distribution_policy where localoid='distpol_typechange'::regclass;
+ policytype | distkey | distclass 
+------------+---------+-----------
+ p          |         | 
+(1 row)
+
+-- Similar case, but with CREATE UNIQUE INDEX, rather than ALTER TABLE.
+-- Creating a unique index on a completely empty table automatically updates
+-- the distribution key to match the unique index.  (This allows the common
+-- case, where no DISTRIBUTED BY was given explicitly, and the system just
+-- picked the first column, which isn't compatible with the unique index
+-- that's created later, to work.) But not if the unique column doesn't
+-- have a hash opclass!
+CREATE TABLE tstab (i int4, t tsvector) distributed by (i);
+CREATE UNIQUE INDEX tstab_idx ON tstab(t);
+ERROR:  UNIQUE index must contain all columns in the distribution key of relation "tstab"
+INSERT INTO tstab VALUES (1, 'foo');
