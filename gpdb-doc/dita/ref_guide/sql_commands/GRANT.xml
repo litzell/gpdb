@@ -13,8 +13,8 @@ TRIGGER | TRUNCATE } [, ...] | ALL [PRIVILEGES] }
          | ALL TABLES IN SCHEMA <varname>schema_name</varname> [, ...] }
     TO { [ GROUP ] <varname>role_name</varname> | PUBLIC} [, ...] [ WITH GRANT OPTION ] 
 
-GRANT { { SELECT | INSERT | UPDATE | REFERENCES } ( <varname>columnname</varname> [, ...] )
-    [, ...] | ALL [ PRIVILEGES ] ( <varname>columnname</varname> [, ...] ) }
+GRANT { { SELECT | INSERT | UPDATE | REFERENCES } ( <varname>column_name</varname> [, ...] )
+    [, ...] | ALL [ PRIVILEGES ] ( <varname>column_name</varname> [, ...] ) }
     ON [ TABLE ] <varname>table_name</varname> [, ...]
     TO { <varname>role_name</varname> | PUBLIC } [, ...] [ WITH GRANT OPTION ]
 
@@ -216,10 +216,9 @@ columns. The privilege may be granted for all columns of a table, or just specif
             the owner from changing the type later.)</pd>
           <pd>For foreign-data wrappers, this privilege enables the grantee to
             create new servers using that foreign-data wrapper.</pd>
-          <pd>For servers, this privilege enables the grantee to create, alter,
-            and drop their own user's user mappings associated with that server.
-            Also, it enables the grantee to query the options of the server and
-            associated user mappings.</pd>
+          <pd>For servers, this privilege enables the grantee to create foreign tables using the
+            server, and also to create, alter, or drop his own user's user mappings associated with
+            that server.</pd>
         </plentry>
         <plentry>
           <pt>ALL PRIVILEGES</pt>
