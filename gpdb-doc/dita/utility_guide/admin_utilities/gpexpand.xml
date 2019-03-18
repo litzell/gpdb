@@ -64,8 +64,8 @@
       <p>In addition to initializing the segment instances, the initialization phase performs these
         actions:</p>
       <ul>
-        <li id="kt138259">Creates an expansion schema in the <codeph>postgres</codeph> database to
-          store the status of the expansion operation, including detailed status for tables.</li>
+        <li id="kt138259">Creates an expansion schema named <i>gpexpand</i> in the postgres database
+          to store the status of the expansion operation, including detailed status for tables.</li>
       </ul>
       <p>In the table data redistribution phase, <codeph>gpexpand</codeph> redistributes table data
         to rebalance the data across the old and new segment instances.</p>
@@ -168,7 +168,7 @@
             utility does not record the relation size information and status information in the
             table <i>gpexpand.status_detail</i>. </pd>
           <pd>Specifying this option can improve performance by reducing the amount of progress
-            information written to the <codeph>gpexpand</codeph> tables.</pd>
+            information written to the <i>gpexpand</i> tables.</pd>
         </plentry>
         <plentry>
           <pt>[-t | --tardir] <varname>directory</varname></pt>
@@ -195,7 +195,7 @@
     <section id="section6">
       <title>Examples</title>
       <p>Run <codeph>gpexpand</codeph> with an input file to initialize new segments and create the
-        expansion schema in the default database:</p>
+        expansion schema in the postgres database:</p>
       <codeblock>$ gpexpand -i input_file</codeblock>
       <p>Run <codeph>gpexpand</codeph> for sixty hours maximum duration to redistribute tables to
         new segments:</p>

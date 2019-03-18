@@ -288,8 +288,8 @@
     <topic id="topic9" xml:lang="en">
       <title id="no165172">About the Expansion Schema</title>
       <body>
-        <p>At initialization, <codeph>gpexpand</codeph> creates an expansion schema in the
-            <codeph>postgres</codeph> database. </p>
+        <p>At initialization, the <codeph>gpexpand</codeph> utility creates an expansion schema
+          named <i>gpexpand</i> in the postgres database. </p>
         <p>The expansion schema stores metadata for each table in the system so its status can be
           tracked throughout the expansion process. The expansion schema consists of two tables and
           a view for tracking expansion operation progress:</p>

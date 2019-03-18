@@ -201,14 +201,14 @@ sdw5:sdw5-1:60012:/gpdata/mirror/gp10:14:10:m</codeblock>
             with <codeph>-i</codeph>. For
               example:<codeblock>$ gpexpand -i input_file</codeblock><p>The utility detects if an
               expansion schema exists for the Greenplum Database system. If a
-                <codeph>gpexpand</codeph> schema exists, remove it with <codeph>gpexpand -c</codeph>
+                <i>gpexpand</i> schema exists, remove it with <codeph>gpexpand -c</codeph>
               before you start a new expansion operation. See <xref href="expand-rm-schema.xml"
                 type="topic" format="dita"/>.</p><p>When the new segments are initialized and the
               expansion schema is created, the utility prints a success message and exits. </p></li>
         </ol>
         <p>When the initialization process completes, you can connect to Greenplum Database and view
-          the expansion schema. The <codeph>gpexpand</codeph> schema resides in the
-            <codeph>postgres</codeph> database. For more information, see <xref
+          the expansion schema. The <i>gpexpand</i> schema resides in the
+            postgres database. For more information, see <xref
             href="expand-planning.xml#topic9" type="topic" format="dita"/>.</p>
       </section>
     </body>
@@ -231,7 +231,7 @@ sdw5:sdw5-1:60012:/gpdata/mirror/gp10:14:10:m</codeblock>
       <p>At any time, you can check the state of cluster expansion by running the
           <codeph>gpstate</codeph> utility with the <codeph>-x</codeph> flag: </p>
       <codeblock>$ gpstate -x</codeblock>
-      <p>If the expansion schema exists in the <codeph>postgres</codeph> database, <codeph>gpstate
+      <p>If the expansion schema exists in the postgres database, <codeph>gpstate
           -x</codeph> reports on the progress of the expansion. During the first expansion phase,
           <codeph>gpstate</codeph> reports on progress of new segment intialization.  During the
         second phase, <codeph>gpstate</codeph> reports on the progress of table redistribution, and
