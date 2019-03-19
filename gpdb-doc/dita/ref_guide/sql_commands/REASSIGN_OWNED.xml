@@ -12,7 +12,7 @@
     <section id="section3">
       <title>Description</title>
       <p><codeph>REASSIGN OWNED</codeph> changes the ownership of database objects owned by any of
-        the l<varname>old_role</varname>s to <varname>new_role</varname>. </p>
+        the <varname>old_role</varname>s to <varname>new_role</varname>. </p>
     </section>
     <section id="section4">
       <title>Parameters</title>
