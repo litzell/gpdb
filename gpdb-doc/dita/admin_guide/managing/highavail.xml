@@ -122,9 +122,14 @@
         <p>If <codeph>ftsprobe</codeph> cannot connect to a segment, it marks the segment as "down"
           in the Greenplum Database system catalog. The segment remains nonoperational until an
           administrator initiates the recovery process.</p>
-        <p>With mirroring enabled, Greenplum Database automatically fails over to a mirror copy if a
-          primary copy becomes unavailable. The system is operational if a segment instance or host
-          fails provided all data is available on the remaining active segments. </p>
+        <p>With mirroring enabled, Greenplum Database automatically fails over to a mirror segment
+          when a primary segment goes down. The mirror segment assumes the role of the primary segment
+          and the failed primary segment becomes the mirror. Transactions in progress when a fault
+          occurs roll back and must be restarted. When restarted the transactions run on the new
+          primary segment.</p>
+        <p>To return the Greenplum Database cluster to full redundancy and balance, an administrator
+          recovers the down mirror segment and exchanges the roles of the primary and mirror
+          segments so that both segments are in their preferred roles.</p>
         <p>To recover failed segments, a Greenplum administrator runs the
             <codeph>gprecoverseg</codeph> recovery utility. This utility locates the failed
           segments, verifies they are valid, and compares the transactional state with the currently
