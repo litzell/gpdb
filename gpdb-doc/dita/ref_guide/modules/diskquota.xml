@@ -78,7 +78,7 @@ $ gpstop -ar</codeblock></li>
         <p>The following example sets a 250GB quota for the <codeph>acct</codeph> schema:</p>
         <codeblock>$ SELECT diskquota.set_schema_quota('acct', '250GB');</codeblock>
         <p>This example sets a 500MB quota for the <codeph>nickd</codeph> role:</p>
-        <codeblock>$ SELECT diskquota.set_role_quota(nickd, '500MB);</codeblock>
+        <codeblock>$ SELECT diskquota.set_role_quota(nickd, '500MB');</codeblock>
         <p>To change a quota, call the <codeph>diskquota.set_schema_quota()</codeph> or
             <codeph>diskquota.set_role_quota()</codeph> function again with the new quota value.</p>
         <p>To remove a quota, set the quota value to <codeph>'-1'</codeph>.</p>
@@ -188,8 +188,8 @@ $ gpstop -ar</codeblock></li>
         in the diskquota schema. This UDF calculates the disk size for all the tables in the
         database. If the databse has millions of tables with hundreds of columns, this procedure can
         take a long time. The diskquota module will not work until the UDF has finished.</p>
-      <p>The diskquota extension can be enabled in up to ten databases. One diskquota worker is
-        created for each diskquota-enabled database.</p>
+      <p>The diskquota extension can be enabled in up to ten databases. One diskquota worker process
+        is created on the Greenplum Database master host for each diskquota-enabled database.</p>
       <p>The disk usage for a role is defined as the total of disk usage on all segments for all
         tables the role owns. Although role is a cluster-level database object, the disk usage for
         roles is calculated separately for each database. </p>
@@ -198,6 +198,11 @@ $ gpstop -ar</codeblock></li>
       <p>The disk usage for a table includes the table data, indexes, toast tables, and free space
         map. For append-optimized tables, the calculation includes the visibility map and index, and
         the block directory table.</p>
+      <p>Diskquota cannot detect a newly created table inside of an uncommited transaction. The size
+        of the new table is not included in the disk usage calculated for the corresponding schema
+        and role until after the transaction has committed. Similarly, a table created using the
+          <codeph>CREATE TABLE AS</codeph> command is not included in disk usage statistics until
+        the command has completed.</p>
       <p>Diskquota supports high availability features provided by the background worker framework.
         The diskquota launcher process only runs on the active master node. The postmaster on the
         standby master does not start the diskquota launcher process when it is in standby mode.
