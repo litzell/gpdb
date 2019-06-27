@@ -10,7 +10,7 @@
         <codeph>gpmetrics</codeph> schema in the gpperfmon database, which contains metrics and
       query history tables populated by the Greenplum Database metrics collector module.</p>
     <note>The <codeph>gpperfmon_install</codeph> utility also creates the gpperfmon database and
-        <codeph>gpmon</codeph> role, but Command Center no longer uses the history tables it creates
+        <codeph>gpmon</codeph> role, but Command Center no longer requires the history tables it creates
       in the database. Do not use <codeph>gpperfmon_install</codeph> unless you need the old query
       history tables for some other purpose. <codeph>gpperfmon_install</codeph> enables the
         <codeph>gpmmon</codeph> and <codeph>gpsmon</codeph> agents, which add unnecessary load to
@@ -43,7 +43,7 @@ host    gpperfmon   gpmon    ::1/128             md5</codeblock></p>
           start</codeph> command. </p>
       <p>Because the <codeph>.pgpass</codeph> file contains the plain-text password of the
           <codeph>gpmon</codeph> user, you may want to remove it and supply the
-          <codeph>gpmon</codeph> password using a more secure method. The gpmon password is needed
+          <codeph>gpmon</codeph> password using a more secure method. The <codeph>gpmon</codeph> password is needed
         when you run the <codeph>gpcc start</codeph>, <codeph>gpcc stop</codeph>, or <codeph>gpcc
           status</codeph> commands. You can add the <codeph>-W</codeph> option to the
           <codeph>gpcc</codeph> command to have the command prompt you to enter the password.
@@ -65,7 +65,7 @@ host    gpperfmon   gpmon    ::1/128             md5</codeblock></p>
           <codeph>pg_hba.conf</codeph> file and either add or edit a line for the user so that the
         gpperfmon database is included in the database field. For example:</p>
       <codeblock>host     gpperfmon,accounts   user1     127.0.0.1/28    md5</codeblock>
-      <p>The Command Center application includes an Admin interface to add, remove, and edit entries
+      <p>The Command Center web application includes an Admin interface to add, remove, and edit entries
         in the <codeph>pg_hba.conf</codeph> file and reload the file into Greenplum Database. </p>
       <p>Command Center has the following types of users:<ul id="ul_tdv_qnt_g5">
           <li><i>Self Only</i> users can view metrics and view and cancel their own queries. Any
@@ -87,7 +87,7 @@ host    gpperfmon   gpmon    ::1/128             md5</codeblock></p>
             Greenplum Database users with the <codeph>SUPERUSER</codeph> privilege have Admin
             permissions in Command Center.</li>
         </ul></p>
-      <p>The Command Center application has an Admin interface you can use to change a Command
+      <p>The Command Center web application has an Admin interface you can use to change a Command
         Center user's access level. </p>
     </section>
     <section>
