@@ -171,19 +171,19 @@ hostnossl  <varname>database</varname>  <varname>user</varname>  <varname>IP-add
         attempt, so the order of the records is significant. Typically, earlier records will have
         tight connection match parameters and weaker authentication methods, while later records
         will have looser match parameters and stronger authentication methods. For example, you
-        might wish to use trust authentication for local TCP/IP connections but require a password
-        for remote TCP/IP connections. In this case a record specifying trust authentication for
-        connections from 127.0.0.1 would appear before a record specifying password authentication
+        might wish to use <codeph>trust</codeph> authentication for local TCP/IP connections but require a password
+        for remote TCP/IP connections. In this case a record specifying <codeph>trust</codeph> authentication for
+        connections from 127.0.0.1 would appear before a record specifying <codeph>password</codeph> authentication
         for a wider range of allowed client IP addresses.</p>
       <p>The <codeph>pg_hba.conf</codeph> file is read on start-up and when the main server process
         receives a SIGHUP signal. If you edit the file on an active system, you must reload the file
         using this command:<codeblock>$ gpstop -u</codeblock></p>
       <note type="caution">For a more secure system, remove records for remote connections that use
-        trust authentication from the <codeph>pg_hba.conf</codeph> file. Trust authentication grants
+        <codeph>trust</codeph> authentication from the <codeph>pg_hba.conf</codeph> file. <codeph>rust</codeph> authentication grants
         any user who can connect to the server access to the database using any role they specify.
-        You can safely replace trust authentication with ident authentication for local UNIX-socket
-        connections. You can also use ident authentication for local and remote TCP clients, but the
-        client host must be running an ident service and you must trust the integrity of that
+        You can safely replace <codeph>trust</codeph> authentication with <codeph>ident</codeph> authentication for local UNIX-socket
+        connections. You can also use <codeph>ident</codeph> authentication for local and remote TCP clients, but the
+        client host must be running an ident service and you must <codeph>trust</codeph> the integrity of that
         machine.</note>
     </body>
   </topic>
@@ -193,13 +193,13 @@ hostnossl  <varname>database</varname>  <varname>user</varname>  <varname>IP-add
       <p>Initially, the <codeph>pg_hba.conf</codeph> file is set up with generous permissions for
         the gpadmin user and no database access for other Greenplum Database roles. You will need to
         edit the <codeph>pg_hba.conf</codeph> file to enable users' access to databases and to
-        secure the gpadmin user. Consider removing entries that have trust authentication, since
+        secure the gpadmin user. Consider removing entries that have <codeph>trust</codeph> authentication, since
         they allow anyone with access to the server to connect with any role they choose. For local
-        (UNIX socket) connections, use ident authentication, which requires the operating system
-        user to match the role specified. For local and remote TCP connections, ident authentication
+        (UNIX socket) connections, use <codeph>ident</codeph> authentication, which requires the operating system
+        user to match the role specified. For local and remote TCP connections, <codeph>ident</codeph> authentication
         requires the client's host to run an indent service. You could install an ident service on
-        the master host and then use ident authentication for local TCP connections, for example
-          <codeph>127.0.0.1/28</codeph>. Using ident authentication for remote TCP connections is
+        the master host and then use <codeph>ident</codeph> authentication for local TCP connections, for example
+          <codeph>127.0.0.1/28</codeph>. Using <codeph>ident</codeph> authentication for remote TCP connections is
         less secure because it requires you to trust the integrity of the ident service on the
         client's host. </p>
       <note otherprops="pivotal"> Greenplum Command Center provides an interface for editing the
@@ -265,8 +265,8 @@ host    all   dba   192.168.0.0/32  md5</codeblock></li>
             <plentry>
               <pt>Ident</pt>
               <pd>Authenticates based on the client's operating system user name. This is secure for
-                local socket connections. Using ident for TCP connections from remote hosts requires
-                that the client's host is running an ident service. The ident authentication method
+                local socket connections. Using <codeph>ident</codeph> for TCP connections from remote hosts requires
+                that the client's host is running an ident service. The <codeph>ident</codeph> authentication method
                 should only be used with remote hosts on a trusted, closed network. </pd>
             </plentry>
             <plentry>
@@ -326,7 +326,7 @@ local        all   gpuser               ident</codeblock
             <codeph>krb_realm</codeph> parameter, or enable <codeph>include_realm</codeph> and use
           user name mapping to check the realm.</p>
         <p>Make sure that your server keytab file is readable (and preferably only readable) by the
-          gpadmin server account. The location of the key file is specified by the <xref
+          <codeph>gpadmin</codeph> server account. The location of the key file is specified by the <xref
             href="../../ref_guide/config_params/guc-list.xml#krb_server_keyfile"/> configuration
           parameter. For security reasons, it is recommended to use a separate keytab just for the
           Greenplum Database server rather than opening up permissions on the system keytab
