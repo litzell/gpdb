@@ -52,13 +52,14 @@
             <codeph>gprestore</codeph>. Keep in mind that the ASCII backup data will require more
           disk space than the original data, which may be stored in compressed binary format.
           Offline backup solutions such as Dell EMC Data Domain can reduce the required disk space
-          on each host. <p otherprops="pivotal">If you attempt to migrate your data on the same
-            hardware but run out of free space, <codeph>gpcopy</codeph> provides the
-              <codeph>--truncate-source-after</codeph> option to truncate each source table after
-            copying the table to the destination cluster and validating the copy succeeded. This
-            reduces the amount of free space needed to migrate clusters that reside on the same
-            hardware. See <xref scope="peer" href="../admin_guide/managing/gpcopy-migrate.xml"
-              >Migrating Data with gpcopy</xref> for more information.</p></li>
+          on each host. <p otherprops="pivotal">If you want to migrate your data on the same
+            hardware but do not have enough free disk space on your host systems,
+              <codeph>gpcopy</codeph> provides the <codeph>--truncate-source-after</codeph> option
+            to truncate each source table after copying the table to the destination cluster and
+            validating that the copy succeeded. This reduces the amount of free space needed to
+            migrate clusters that reside on the same hardware. See <xref scope="peer"
+              href="../admin_guide/managing/gpcopy-migrate.xml">Migrating Data with gpcopy</xref>
+            for more information.</p></li>
         <li>Install any external modules used in your Greenplum 4.3 system in the Greenplum 6 system
           before you restore the backup, for example MADlib or PostGIS. If versions of the external
           modules are not compatible, you may need to exclude tables that reference them when
