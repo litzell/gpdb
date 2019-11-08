@@ -76,22 +76,22 @@
                 <pd>Required. The Data Domain Boost user name. There is a 30-character limit.</pd>
               </plentry>
               <plentry id="ddb-pwd-encrypt">            
-                <pt>password-encryption</pt>
+                <pt>password_encryption</pt>
                 <pd>Optional. Specifies whether the <codeph>password</codeph> option value is
                   encrypted. Default value is <codeph>off</codeph>. Use the <codeph><xref
                       href="../../utility_guide/ref/gpbackup_manager.xml#topic1"/></codeph>
                   <codeph>encrypt-password</codeph> command to encrypt the plain-text password for
-                  the DD Boost user. If the <codeph>replication</codeph> option is on,
-                    <codeph>gpbackup_manager</codeph> also encrypts the remote Data Domain user's
-                  password. Copy the encrypted password(s) from the
+                  the DD Boost user. If the <codeph>replication</codeph> option is
+                    <codeph>on</codeph>, <codeph>gpbackup_manager</codeph> also encrypts the remote
+                  Data Domain user's password. Copy the encrypted password(s) from the
                     <codeph>gpbackup_manager</codeph> output to the <codeph>password</codeph>
                   options in the configuration file.</pd>
             </plentry>
               <plentry id="ddb-pwd">
                 <pt>password</pt>
                 <pd>Required. The passcode for the DD Boost user to access the Data Domain storage
-                  unit. If the <codeph>password_encryption</codeph> option is on, this is an
-                  encrypted password.</pd>
+                  unit. If the <codeph>password_encryption</codeph> option is <codeph>on</codeph>,
+                  this is an encrypted password.</pd>
               </plentry>
               <plentry id="ddb-s-unit">
                 <pt>storage-unit</pt>
@@ -137,22 +137,23 @@
             <plentry id="ddb-remote-pwd-encrypt">
               <pt>remote_password_encryption</pt>
               <pd>Optional. Specifies whether the <codeph>remote_password</codeph> option value is
-                encrypted. The default value is <codeph>off</codeph>. To set up password
-                encryption use the <codeph><xref
-                  href="../../utility_guide/ref/gpbackup_manager.xml#topic1"
-                  >gpbackup_manager</xref></codeph>
-                <codeph>encrypt-password</codeph> command to encrypt the plain-text passwords for
-                the DD Boost user. If the <codeph>replication</codeph> parameter is on,
-                <codeph>gpbackup_manager</codeph> also encrypts the remote Data Domain user's
-                password. Copy the encrypted passwords from the <codeph>gpbackup_manager</codeph>
-                output to the password options in the configuration file. </pd>
+                  encrypted. The default value is <codeph>off</codeph>. To set up password
+                  encryption use the <codeph><xref
+                      href="../../utility_guide/ref/gpbackup_manager.xml#topic1"
+                      >gpbackup_manager</xref></codeph>
+                  <codeph>encrypt-password</codeph> command to encrypt the plain-text passwords for
+                  the DD Boost user. If the <codeph>replication</codeph> parameter is
+                    <codeph>on</codeph>, <codeph>gpbackup_manager</codeph> also encrypts the remote
+                  Data Domain user's password. Copy the encrypted passwords from the
+                    <codeph>gpbackup_manager</codeph> output to the password options in the
+                  configuration file. </pd>
             </plentry>
             <plentry id="ddb-remote-pwd">
                 <pt>remote_password</pt>
                 <pd>Required if <codeph>replication</codeph> is <codeph>on</codeph>. The passcode
                   for the DD Boost user to access the Data Domain storage unit on the remote system.
-                  If the <codeph>remote_password_encryption</codeph> option is on, this is an
-                  encrypted password.</pd>
+                  If the <codeph>remote_password_encryption</codeph> option is <codeph>on</codeph>,
+                  this is an encrypted password.</pd>
               </plentry>
               <plentry id="ddb-remote-s-unit">
                 <pt>remote_storage_unit</pt>

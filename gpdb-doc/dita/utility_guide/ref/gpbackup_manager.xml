@@ -59,7 +59,7 @@
           <pd>Displays a help message for the <codeph>gpbackup_manager</codeph> command. For help on
             a specific <codeph>gpbackup_manager</codeph> command, enter <codeph>gpbackup_manager
               help <varname>command</varname></codeph>. For
-            example:<codeblock>$ gpbackup_manager encrypt-password help</codeblock></pd>
+            example:<codeblock>$ gpbackup_manager help encrypt-password</codeblock></pd>
         </plentry>
       </parml>
     </section>
@@ -80,9 +80,10 @@
         in the backup history file. The <codeph>list-backups</codeph> command duration column is
         empty for these backups.</p>
       <p>The <codeph>encrypt-password</codeph> command is used to encrypt Data Domain user passwords
-        that are saved in a DD Boost plug-In configuration file. To use this option, the pgcrypto
-        extension must be enabled in the Greenplum Database postgres database. See the Pivotal
-        Greenplum Backup and Restore installation instructions for help installing pgcrypto.</p>
+        that are saved in a DD Boost plug-In configuration file. To use this option, the
+          <codeph>pgcrypto</codeph> extension must be enabled in the Greenplum Database
+          <codeph>postgres</codeph> database. See the Pivotal Greenplum Backup and Restore
+        installation instructions for help installing <codeph>pgcrypto</codeph>.</p>
       <p>The <codeph>encrypt-password</codeph> command prompts you to enter and then re-enter the
         password to be encrypted. To maintain password secrecy, characters entered are echoed as
         asterisks. If replication is enabled in the specified DD Boost configuration file, the
