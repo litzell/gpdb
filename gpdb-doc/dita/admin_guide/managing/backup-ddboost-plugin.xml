@@ -52,7 +52,7 @@
   <xref href="#topic_ddb-plugin/ddb-replication" format="dita">replication</xref>: "on" | "off"
   <xref href="#topic_ddb-plugin/ddb-remote-host" format="dita">remote_hostname</xref>: "&lt;<varname>remote-dd-host</varname>>"
   <xref href="#topic_ddb-plugin/ddb-remote-user" format="dita">remote_username</xref>: "&lt;<varname>remote-ddboost-ID</varname>>"
-  <xref href="#topic_ddb-plugin/ddb-remote-pwd-encrypt" format="dita">remote_password_encryption</xref>L "on" | "off"
+  <xref href="#topic_ddb-plugin/ddb-remote-pwd-encrypt" format="dita">remote_password_encryption</xref> "on" | "off"
   <xref href="#topic_ddb-plugin/ddb-remote-pwd" format="dita">remote_password</xref>: "&lt;<varname>remote-dd-pwd</varname>>"
   <xref href="#topic_ddb-plugin/ddb-remote-s-unit" format="dita">remote_storage_unit</xref>: "&lt;<varname>remote-dd-ID</varname>>"
   <xref href="#topic_ddb-plugin/ddb-remote-dir" format="dita">remote_directory</xref>: "&lt;<varname>remote-dd-dir</varname>>"</codeblock>
