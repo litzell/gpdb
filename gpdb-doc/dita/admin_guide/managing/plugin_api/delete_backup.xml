@@ -26,9 +26,10 @@
         </parml>
     </section>
     <section id="section5"><title>Exit Code</title>
-      <p>The <codeph>delete_backup</codeph> command must exit with a value of 0 on success, non-zero
-        if an error occurs. In the case of a non-zero exit code, <codeph>gpbackup_manager</codeph>
-        displays the contents of <codeph>stderr</codeph> to the user.</p>
+      <p>The <codeph>delete_backup</codeph> command must exit with a value of 0 on success, or a
+        non-zero value if an error occurs. In the case of a non-zero exit code,
+          <codeph>gpbackup_manager</codeph> displays the contents of <codeph>stderr</codeph> to the
+        user.</p>
     </section>
     <section>
       <title>Example</title>
