@@ -449,9 +449,11 @@
     <topic id="topic_ncl_w1d_r1b">
       <title>GPText</title>
       <body>
-        <p>Pivotal Greenplum Database 6 is compatible with Pivotal Greenplum Text version 3.3.1 and
-          later. See the <xref href="http://gptext.docs.pivotal.io" format="html" scope="external"
-            >Greenplum Text documentation</xref> for additional compatibility information. </p>
+        <p>Pivotal Greenplum Database 6.0 through 6.4 are compatible with Pivotal Greenplum Text
+          3.3.1 through 3.4.1. Pivotal Greenplum Database 6.5 and later are compatible with Pivotal
+          Greenplum Text 3.4.2 and later. See the <xref href="http://gptext.docs.pivotal.io"
+            format="html" scope="external">Greenplum Text documentation</xref> for additional
+          compatibility information. </p>
       </body>
     </topic>
     <topic id="topic_zkq_j5b_hbb">
