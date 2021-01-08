@@ -3,7 +3,7 @@
   <dxl:Thread Id="0">
     <dxl:OptimizerConfig>
       <dxl:EnumeratorConfig Id="0" PlanSamples="0" CostThreshold="0"/>
-      <dxl:StatisticsConfig DampingFactorFilter="0.750000" DampingFactorJoin="0.010000" DampingFactorGroupBy="0.750000"/>
+      <dxl:StatisticsConfig DampingFactorFilter="0.750000" DampingFactorJoin="0.010000" DampingFactorGroupBy="0.750000" MaxStatsBuckets="100"/>
       <dxl:CTEConfig CTEInliningCutoff="0"/> 
       <dxl:WindowOids RowNumber="7000" Rank="7001"/>
       <dxl:TraceFlags Value="103027,102024,103001"/>
@@ -4554,7 +4554,7 @@
     <dxl:Plan Id="0" SpaceSize="40">
       <dxl:GatherMotion InputSegments="0,1" OutputSegments="-1">
         <dxl:Properties>
-          <dxl:Cost StartupCost="0" TotalCost="2419556.187988" Rows="1.000000" Width="275"/>
+          <dxl:Cost StartupCost="0" TotalCost="11941.357050" Rows="1.000000" Width="275"/>
         </dxl:Properties>
         <dxl:ProjList>
           <dxl:ProjElem ColId="0" Alias="l_orderkey">
@@ -4637,7 +4637,7 @@
         <dxl:SortingColumnList/>
         <dxl:HashJoin JoinType="Inner">
           <dxl:Properties>
-            <dxl:Cost StartupCost="0" TotalCost="2419555.053711" Rows="1.000000" Width="275"/>
+            <dxl:Cost StartupCost="0" TotalCost="11941.355816" Rows="1.000000" Width="275"/>
           </dxl:Properties>
           <dxl:ProjList>
             <dxl:ProjElem ColId="0" Alias="l_orderkey">
@@ -4742,7 +4742,7 @@
           </dxl:HashCondList>
           <dxl:TableScan>
             <dxl:Properties>
-              <dxl:Cost StartupCost="0" TotalCost="404515.801758" Rows="6003249.000000" Width="138"/>
+              <dxl:Cost StartupCost="0" TotalCost="708.350104" Rows="6003249.000000" Width="138"/>
             </dxl:Properties>
             <dxl:ProjList>
               <dxl:ProjElem ColId="0" Alias="l_orderkey">
@@ -4825,7 +4825,7 @@
           </dxl:TableScan>
           <dxl:RedistributeMotion InputSegments="0,1" OutputSegments="0,1">
             <dxl:Properties>
-              <dxl:Cost StartupCost="0" TotalCost="201001.941406" Rows="1502372.000000" Width="137"/>
+              <dxl:Cost StartupCost="0" TotalCost="1013.116567" Rows="1502372.000000" Width="137"/>
             </dxl:Properties>
             <dxl:ProjList>
               <dxl:ProjElem ColId="23" Alias="o_orderkey">
@@ -4865,7 +4865,7 @@
             </dxl:HashExprList>
             <dxl:TableScan>
               <dxl:Properties>
-                <dxl:Cost StartupCost="0" TotalCost="100500.470703" Rows="1502372.000000" Width="137"/>
+                <dxl:Cost StartupCost="0" TotalCost="499.583282" Rows="1502372.000000" Width="137"/>
               </dxl:Properties>
               <dxl:ProjList>
                 <dxl:ProjElem ColId="23" Alias="o_orderkey">

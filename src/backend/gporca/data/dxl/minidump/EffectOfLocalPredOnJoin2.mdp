@@ -3,7 +3,7 @@
   <dxl:Thread Id="0">
     <dxl:OptimizerConfig>
       <dxl:EnumeratorConfig Id="0" PlanSamples="0" CostThreshold="0"/>
-      <dxl:StatisticsConfig DampingFactorFilter="0.750000" DampingFactorJoin="0.010000" DampingFactorGroupBy="0.750000"/>
+      <dxl:StatisticsConfig DampingFactorFilter="0.750000" DampingFactorJoin="0.010000" DampingFactorGroupBy="0.750000" MaxStatsBuckets="100"/>
       <dxl:CTEConfig CTEInliningCutoff="0"/> 
       <dxl:WindowOids RowNumber="7000" Rank="7001"/>
       <dxl:TraceFlags Value="103027,101001,101013,102024,102025,102115,102117,103001"/>
@@ -3779,7 +3779,7 @@
         <dxl:IntermediateResultType Mdid="0.20.1.0"/>
       </dxl:GPDBAgg>
       <dxl:RelationStatistics Mdid="2.1962503.1.1" Name="date_dim" Rows="73049.000000" EmptyRelation="false"/>
-      <dxl:Relation Mdid="0.1962503.1.0" Name="date_dim" IsTemporary="false" HasOids="false" StorageType="Heap" DistributionPolicy="Hash" DistributionColumns="0" Keys="0,6;33,34,28" PartitionColumns="6">
+      <dxl:Relation Mdid="0.1962503.1.0" Name="date_dim" IsTemporary="false" HasOids="false" StorageType="Heap" DistributionPolicy="Hash" DistributionColumns="0" Keys="0,6;33,34,28" PartitionColumns="6" PartitionTypes="r">
         <dxl:Columns>
           <dxl:Column Name="d_date_sk" Attno="1" Mdid="0.23.1.0" Nullable="false" ColWidth="4">
             <dxl:DefaultValue/>
@@ -3891,7 +3891,7 @@
         <dxl:Triggers/>
         <dxl:CheckConstraints/>
       </dxl:Relation>
-      <dxl:Relation Mdid="0.1962503.1.1" Name="date_dim" IsTemporary="false" HasOids="false" StorageType="Heap" DistributionPolicy="Hash" DistributionColumns="0" Keys="0,6;33,34,28" PartitionColumns="6">
+      <dxl:Relation Mdid="0.1962503.1.1" Name="date_dim" IsTemporary="false" HasOids="false" StorageType="Heap" DistributionPolicy="Hash" DistributionColumns="0" Keys="0,6;33,34,28" PartitionColumns="6" PartitionTypes="r">
         <dxl:Columns>
           <dxl:Column Name="d_date_sk" Attno="1" Mdid="0.23.1.0" Nullable="false" ColWidth="4">
             <dxl:DefaultValue/>
@@ -5808,7 +5808,7 @@
       </dxl:ColumnStatistics>
       <dxl:MDCast Mdid="3.23.1.0;23.1.0" Name="int4" BinaryCoercible="true" SourceTypeId="0.23.1.0" DestinationTypeId="0.23.1.0" CastFuncId="0.0.0.0"/>
       <dxl:RelationStatistics Mdid="2.1974810.1.1" Name="store_returns" Rows="287422.000000" EmptyRelation="false"/>
-      <dxl:Relation Mdid="0.1974810.1.1" Name="store_returns" IsTemporary="false" HasOids="false" StorageType="Heap" DistributionPolicy="Hash" DistributionColumns="2,9" Keys="2,9,0;25,26,20" PartitionColumns="0">
+      <dxl:Relation Mdid="0.1974810.1.1" Name="store_returns" IsTemporary="false" HasOids="false" StorageType="Heap" DistributionPolicy="Hash" DistributionColumns="2,9" Keys="2,9,0;25,26,20" PartitionColumns="0" PartitionTypes="r">
         <dxl:Columns>
           <dxl:Column Name="sr_returned_date_sk" Attno="1" Mdid="0.23.1.0" Nullable="false" ColWidth="4">
             <dxl:DefaultValue/>
@@ -10287,7 +10287,7 @@
     <dxl:Plan Id="0" SpaceSize="41">
       <dxl:GatherMotion InputSegments="0,1" OutputSegments="-1">
         <dxl:Properties>
-          <dxl:Cost StartupCost="0" TotalCost="888.989563" Rows="3866.533707" Width="116"/>
+          <dxl:Cost StartupCost="0" TotalCost="865.874138" Rows="3866.533707" Width="116"/>
         </dxl:Properties>
         <dxl:ProjList>
           <dxl:ProjElem ColId="0" Alias="sr_returned_date_sk">
@@ -10355,7 +10355,7 @@
         <dxl:SortingColumnList/>
         <dxl:HashJoin JoinType="In">
           <dxl:Properties>
-            <dxl:Cost StartupCost="0" TotalCost="668.986677" Rows="3866.533707" Width="116"/>
+            <dxl:Cost StartupCost="0" TotalCost="863.860292" Rows="3866.533707" Width="116"/>
           </dxl:Properties>
           <dxl:ProjList>
             <dxl:ProjElem ColId="0" Alias="sr_returned_date_sk">
@@ -10429,7 +10429,7 @@
           </dxl:HashCondList>
           <dxl:DynamicTableScan PartIndexId="1">
             <dxl:Properties>
-              <dxl:Cost StartupCost="0" TotalCost="219.002886" Rows="3866.533707" Width="116"/>
+              <dxl:Cost StartupCost="0" TotalCost="431.155241" Rows="3866.533707" Width="116"/>
             </dxl:Properties>
             <dxl:ProjList>
               <dxl:ProjElem ColId="0" Alias="sr_returned_date_sk">
@@ -10555,7 +10555,7 @@
             </dxl:PrintableFilter>
             <dxl:BroadcastMotion InputSegments="0,1" OutputSegments="0,1">
               <dxl:Properties>
-                <dxl:Cost StartupCost="0" TotalCost="8.726941" Rows="53.379371" Width="4"/>
+                <dxl:Cost StartupCost="0" TotalCost="431.025248" Rows="53.379371" Width="4"/>
               </dxl:Properties>
               <dxl:ProjList>
                 <dxl:ProjElem ColId="27" Alias="d_date_sk">
@@ -10566,7 +10566,7 @@
               <dxl:SortingColumnList/>
               <dxl:Result>
                 <dxl:Properties>
-                  <dxl:Cost StartupCost="0" TotalCost="7.622684" Rows="26.689686" Width="4"/>
+                  <dxl:Cost StartupCost="0" TotalCost="431.022454" Rows="26.689686" Width="4"/>
                 </dxl:Properties>
                 <dxl:ProjList>
                   <dxl:ProjElem ColId="27" Alias="d_date_sk">
@@ -10577,7 +10577,7 @@
                 <dxl:OneTimeFilter/>
                 <dxl:Sequence>
                   <dxl:Properties>
-                    <dxl:Cost StartupCost="0" TotalCost="7.622684" Rows="26.689686" Width="12"/>
+                    <dxl:Cost StartupCost="0" TotalCost="431.022454" Rows="26.689686" Width="12"/>
                   </dxl:Properties>
                   <dxl:ProjList>
                     <dxl:ProjElem ColId="27" Alias="d_date_sk">
@@ -10616,7 +10616,7 @@
                   </dxl:PartitionSelector>
                   <dxl:DynamicTableScan PartIndexId="2">
                     <dxl:Properties>
-                      <dxl:Cost StartupCost="0" TotalCost="7.622684" Rows="26.689686" Width="12"/>
+                      <dxl:Cost StartupCost="0" TotalCost="431.022454" Rows="26.689686" Width="12"/>
                     </dxl:Properties>
                     <dxl:ProjList>
                       <dxl:ProjElem ColId="27" Alias="d_date_sk">

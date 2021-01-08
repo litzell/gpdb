@@ -4,7 +4,7 @@
  *	  Parallelize a PostgreSQL sequential plan tree.
  *
  * Portions Copyright (c) 2004-2008, Greenplum inc
- * Portions Copyright (c) 2012-Present Pivotal Software, Inc.
+ * Portions Copyright (c) 2012-Present VMware, Inc. or its affiliates.
  *
  *
  * IDENTIFICATION
@@ -15,11 +15,10 @@
 
 #include "postgres.h"
 
+#include "access/relation.h"
 #include "access/xact.h"
 #include "parser/parsetree.h"	/* for rt_fetch() */
-#include "utils/relcache.h"		/* RelationGetPartitioningKey() */
 #include "optimizer/planmain.h"
-#include "optimizer/var.h"
 #include "parser/parse_relation.h"
 #include "utils/fmgroids.h"
 #include "utils/guc.h"
@@ -27,6 +26,7 @@
 #include "utils/datum.h"
 #include "utils/syscache.h"
 #include "optimizer/clauses.h"
+#include "optimizer/optimizer.h"
 #include "optimizer/pathnode.h"
 #include "nodes/makefuncs.h"
 
@@ -39,7 +39,6 @@
 #include "cdb/cdbhash.h"
 #include "cdb/cdbllize.h"
 #include "cdb/cdbmutate.h"
-#include "cdb/cdbpartition.h"
 #include "cdb/cdbplan.h"
 #include "cdb/cdbpullup.h"
 #include "cdb/cdbvars.h"
@@ -66,11 +65,9 @@ static bool replace_shareinput_targetlists_walker(Node *node, PlannerInfo *root,
 
 
 Motion *
-make_union_motion(Plan *lefttree, int numsegments)
+make_union_motion(Plan *lefttree)
 {
 	Motion	   *motion;
-
-	Assert(numsegments > 0);
 
 	motion = make_motion(NULL, lefttree,
 						 0, NULL, NULL, NULL, NULL /* no ordering */);
@@ -85,12 +82,9 @@ make_union_motion(Plan *lefttree, int numsegments)
 Motion *
 make_sorted_union_motion(PlannerInfo *root, Plan *lefttree, int numSortCols,
 						 AttrNumber *sortColIdx, Oid *sortOperators,
-						 Oid *collations, bool *nullsFirst,
-						 int numsegments)
+						 Oid *collations, bool *nullsFirst)
 {
 	Motion	   *motion;
-
-	Assert(numsegments > 0);
 
 	motion = make_motion(root, lefttree,
 						 numSortCols, sortColIdx, sortOperators, collations, nullsFirst);
@@ -105,7 +99,7 @@ Motion *
 make_hashed_motion(Plan *lefttree,
 				   List *hashExprs,
 				   List *hashOpfamilies,
-				   int numsegments)
+				   int numHashSegments)
 {
 	Motion	   *motion;
 	Oid		   *hashFuncs;
@@ -113,7 +107,7 @@ make_hashed_motion(Plan *lefttree,
 	ListCell   *opf_cell;
 	int			i;
 
-	Assert(numsegments > 0);
+	Assert(numHashSegments > 0);
 	Assert(list_length(hashExprs) == list_length(hashOpfamilies));
 
 	/* Look up the right hash functions for the hash expressions */
@@ -133,16 +127,15 @@ make_hashed_motion(Plan *lefttree,
 	motion->motionType = MOTIONTYPE_HASH;
 	motion->hashExprs = hashExprs;
 	motion->hashFuncs = hashFuncs;
+	motion->numHashSegments = numHashSegments;
 
 	return motion;
 }
 
 Motion *
-make_broadcast_motion(Plan *lefttree, int numsegments)
+make_broadcast_motion(Plan *lefttree)
 {
 	Motion	   *motion;
-
-	Assert(numsegments > 0);
 
 	motion = make_motion(NULL, lefttree,
 						 0, NULL, NULL, NULL, NULL /* no ordering */);
@@ -154,14 +147,13 @@ make_broadcast_motion(Plan *lefttree, int numsegments)
 }
 
 Plan *
-make_explicit_motion(PlannerInfo *root, Plan *lefttree, AttrNumber segidColIdx, int numsegments)
+make_explicit_motion(PlannerInfo *root, Plan *lefttree, AttrNumber segidColIdx)
 {
 	Motion	   *motion;
 	plan_tree_base_prefix base;
 
 	base.node = (Node *) root;
 
-	Assert(numsegments > 0);
 	Assert(segidColIdx > 0 && segidColIdx <= list_length(lefttree->targetlist));
 
 	motion = make_motion(NULL, lefttree,
@@ -560,11 +552,10 @@ create_shareinput_producer_rte(ApplyShareInputContext *ctxt, int share_id,
 	List	   *coltypes = NIL;
 	List	   *coltypmods = NIL;
 	List	   *colcollations = NIL;
-	ApplyShareInputContextPerShare *pershare;
 
+	Assert(ctxt->shared_plans);
 	Assert(ctxt->shared_input_count > share_id);
-	pershare = &ctxt->shared_inputs[share_id];
-	subplan = pershare->shared_plan;
+	subplan = ctxt->shared_plans[share_id];
 
 	foreach(lc, subplan->targetlist)
 	{
@@ -609,9 +600,9 @@ create_shareinput_producer_rte(ApplyShareInputContext *ctxt, int share_id,
 	rte->alias = NULL;
 
 	rte->eref = makeAlias(rte->ctename, colnames);
-	rte->ctecoltypes = coltypes;
-	rte->ctecoltypmods = coltypmods;
-	rte->ctecolcollations = colcollations;
+	rte->coltypes = coltypes;
+	rte->coltypmods = coltypmods;
+	rte->colcollations = colcollations;
 
 	rte->inh = false;
 	rte->inFromCl = false;
@@ -623,8 +614,7 @@ create_shareinput_producer_rte(ApplyShareInputContext *ctxt, int share_id,
 }
 
 /*
- * Memorize the producer of a shared input in an array of producers, one
- * producer per share_id.
+ * Memorize the shared plan of a shared input in an array, one per share_id.
  */
 static void
 shareinput_save_producer(ShareInputScan *plan, ApplyShareInputContext *ctxt)
@@ -634,20 +624,20 @@ shareinput_save_producer(ShareInputScan *plan, ApplyShareInputContext *ctxt)
 
 	Assert(plan->share_id >= 0);
 
-	if (ctxt->shared_inputs == NULL)
+	if (ctxt->shared_plans == NULL)
 	{
-		ctxt->shared_inputs = palloc0(sizeof(ApplyShareInputContextPerShare) * new_shared_input_count);
+		ctxt->shared_plans = palloc0(sizeof(Plan *) * new_shared_input_count);
 		ctxt->shared_input_count = new_shared_input_count;
 	}
 	else if (ctxt->shared_input_count < new_shared_input_count)
 	{
-		ctxt->shared_inputs = repalloc(ctxt->shared_inputs, new_shared_input_count * sizeof(ApplyShareInputContextPerShare));
-		memset(&ctxt->shared_inputs[ctxt->shared_input_count], 0, (new_shared_input_count - ctxt->shared_input_count) * sizeof(ApplyShareInputContextPerShare));
+		ctxt->shared_plans = repalloc(ctxt->shared_plans, new_shared_input_count * sizeof(Plan *));
+		memset(&ctxt->shared_plans[ctxt->shared_input_count], 0, (new_shared_input_count - ctxt->shared_input_count) * sizeof(Plan *));
 		ctxt->shared_input_count = new_shared_input_count;
 	}
 
-	Assert(ctxt->shared_inputs[share_id].shared_plan == NULL);
-	ctxt->shared_inputs[share_id].shared_plan = plan->scan.plan.lefttree;
+	Assert(ctxt->shared_plans[share_id] == NULL);
+	ctxt->shared_plans[share_id] = plan->scan.plan.lefttree;
 }
 
 /*
@@ -679,11 +669,13 @@ shareinput_mutator_dag_to_tree(Node *node, PlannerInfo *root, bool fPop)
 		int			attno;
 		ListCell   *lc;
 
+		/* on entry, all ShareInputScans should have a child */
+		Assert(subplan);
+
 		/* Is there a producer for this sub-tree already? */
 		for (share_id = 0; share_id < ctxt->shared_input_count; share_id++)
 		{
-			if (ctxt->shared_inputs[share_id].shared_plan &&
-				ctxt->shared_inputs[share_id].shared_plan == subplan)
+			if (ctxt->shared_plans[share_id] == subplan)
 			{
 				/*
 				 * Yes. This is a consumer. Remove the subtree, and assign the
@@ -943,20 +935,12 @@ shareinput_mutator_xslice_1(Node *node, PlannerInfo *root, bool fPop)
 		if (currentSlice->gangType == GANGTYPE_UNALLOCATED ||
 			currentSlice->gangType == GANGTYPE_ENTRYDB_READER)
 		{
-				ctxt->qdShares = list_append_unique_int(ctxt->qdShares, sisc->share_id);
+			ctxt->qdShares = bms_add_member(ctxt->qdShares, sisc->share_id);
 		}
 
+		/* Remember information about the slice that this instance appears in. */
 		if (shared)
-		{
-			/*
-			 * We need to repopulate the producers array. The plan tree might
-			 * have been modified between shareinput_mutator_dag_to_tree() and
-			 * here, destroying the producers array in the process.
-			 */
-			ctxt->shared_inputs[sisc->share_id].shared_plan = shared;
 			ctxt->shared_inputs[sisc->share_id].producer_slice_id = motId;
-		}
-
 		share_info->participant_slices = bms_add_member(share_info->participant_slices, motId);
 
 		sisc->this_slice_id = motId;
@@ -997,50 +981,22 @@ shareinput_mutator_xslice_2(Node *node, PlannerInfo *root, bool fPop)
 		ShareInputScan *sisc = (ShareInputScan *) plan;
 		int			motId = shareinput_peekmot(ctxt);
 		ApplyShareInputContextPerShare *pershare;
-		Plan	   *childPlan;
 
 		pershare = &ctxt->shared_inputs[sisc->share_id];
-		childPlan = pershare->shared_plan;
-		if (!childPlan)
-			elog(ERROR, "sub-plan for share_id %d cannot be NULL", sisc->share_id);
 
 		if (bms_num_members(pershare->participant_slices) > 1)
 		{
-			if (IsA(childPlan, Material))
-			{
-				Assert(sisc->share_type == SHARE_MATERIAL);
-				sisc->share_type = SHARE_MATERIAL_XSLICE;
-			}
-			else if (IsA(childPlan, Sort))
-			{
-				Assert(sisc->share_type == SHARE_SORT);
-				sisc->share_type = SHARE_SORT_XSLICE;
-			}
-			else
-				elog(ERROR, "child of ShareInputScan is of unexpected type");
+			Assert(!sisc->cross_slice);
+			sisc->cross_slice = true;
 		}
 
 		sisc->producer_slice_id = pershare->producer_slice_id;
 		sisc->nconsumers = bms_num_members(pershare->participant_slices) - 1;
 
-		/* Tell the child node that it's part of a ShareInputScan */
-		if (IsA(childPlan, Material))
-		{
-			((Material *) childPlan)->share_type = sisc->share_type;
-			((Material *) childPlan)->share_id = sisc->share_id;
-		}
-		else if (IsA(childPlan, Sort))
-		{
-			((Sort *) childPlan)->share_type = sisc->share_type;
-			((Sort *) childPlan)->share_id = sisc->share_id;
-		}
-		else
-			elog(ERROR, "child of ShareInputScan is of unexpected type");
-
 		/*
 		 * If this share needs to run in the QD, mark the slice accordingly.
 		 */
-		if (list_member_int(ctxt->qdShares, sisc->share_id))
+		if (bms_is_member(sisc->share_id, ctxt->qdShares))
 		{
 			PlanSlice  *currentSlice = &ctxt->slices[motId];
 
@@ -1330,6 +1286,8 @@ rte_param_walker(List *rtable, ParamWalkerContext *context)
 			case RTE_RELATION:
 			case RTE_VOID:
 			case RTE_CTE:
+			case RTE_RESULT:
+			case RTE_NAMEDTUPLESTORE:
 				/* nothing to do */
 				break;
 			case RTE_SUBQUERY:
@@ -1352,6 +1310,9 @@ rte_param_walker(List *rtable, ParamWalkerContext *context)
 					RangeTblFunction *rtfunc = (RangeTblFunction *) lfirst(func_lc);
 					param_walker(rtfunc->funcexpr, context);
 				}
+				break;
+			case RTE_TABLEFUNC:
+				param_walker((Node *) rte->tablefunc, context);
 				break;
 			case RTE_VALUES:
 				param_walker((Node *) rte->values_lists, context);
@@ -1687,7 +1648,7 @@ pre_dispatch_function_evaluation_mutator(Node *node,
 			 */
 			const_val = ExecEvalExprSwitchContext(exprstate,
 												  GetPerTupleExprContext(estate),
-												  &const_is_null, NULL);
+												  &const_is_null);
 
 			/* Get info needed about result datatype */
 			get_typlenbyval(expr->funcresulttype, &resultTypLen, &resultTypByVal);
@@ -1830,10 +1791,9 @@ cdbpathtoplan_create_sri_plan(RangeTblEntry *rte, PlannerInfo *subroot, Path *su
 							  int createplan_flags)
 {
 	CdbMotionPath *motionpath;
-	ResultPath *resultpath;
+	Path	   *resultpath;
 	Result	   *resultplan;
 	Relation	rel;
-	PartitionNode *pn;
 	GpPolicy   *targetPolicy;
 	List	   *hashExprs;
 	List	   *hashOpfamilies;
@@ -1850,107 +1810,34 @@ cdbpathtoplan_create_sri_plan(RangeTblEntry *rte, PlannerInfo *subroot, Path *su
 		return NULL;
 	motionpath = (CdbMotionPath *) subpath;
 
-	if (!IsA(motionpath->subpath, ResultPath))
+	if (IsA(motionpath->subpath, GroupResultPath))
+	{
+		/* ok */
+	}
+	else if (IsA(motionpath->subpath, ProjectionPath) &&
+			 IsA(((ProjectionPath *) motionpath->subpath)->subpath, GroupResultPath))
+	{
+		/* ProjectionPath with a GroupResultPath beneath is also ok. */
+	}
+	else
 		return NULL;
 
-	resultpath = (ResultPath *) motionpath->subpath;
+	resultpath = motionpath->subpath;
 
-	if (contain_mutable_functions((Node *) resultpath->path.pathtarget->exprs))
+	if (contain_mutable_functions((Node *) resultpath->pathtarget->exprs))
 		return NULL;
 
-	resultplan = (Result *) create_plan_recurse(subroot, (Path *) resultpath, createplan_flags);
+	resultplan = (Result *) create_plan_recurse(subroot, resultpath, createplan_flags);
 	if (!IsA(resultplan, Result))
+	{
+		/* A GroupResultPath really should produce a Result node. */
+		Assert(false);
 		return NULL;
+	}
 
 	/* Suppose caller already hold proper locks for relation. */
 	rel = relation_open(rte->relid, NoLock);
 	targetPolicy = rel->rd_cdbpolicy;
-
-	/* 1: See if it's partitioned */
-	pn = RelationBuildPartitionDesc(rel, false);
-
-	/* Look up the distribution policy for the target partition. */
-	if (pn && !partition_policies_equal(targetPolicy, pn))
-	{
-		/*
-		 * 2: See if partitioning columns are constant
-		 */
-		List	   *partatts = get_partition_attrs(pn);
-		ListCell   *lc;
-		TupleTableSlot *slot;
-		bool	   *nulls;
-		Datum	   *values;
-		EState	   *estate = CreateExecutorState();
-		ResultRelInfo *rri;
-
-		/*
-		 * 4: build tuple, look up partitioning key
-		 */
-		slot = MakeSingleTupleTableSlot(RelationGetDescr(rel));
-		ExecClearTuple(slot);
-		values = slot_get_values(slot);
-		nulls = slot_get_isnull(slot);
-
-		foreach(lc, partatts)
-		{
-			AttrNumber	attnum = lfirst_int(lc);
-			List	   *tl = resultplan->plan.targetlist;
-			ListCell   *cell;
-
-			foreach(cell, tl)
-			{
-				TargetEntry *tle = (TargetEntry *) lfirst(cell);
-
-				Assert(tle->expr);
-
-				if (tle->resno == attnum)
-				{
-					/*
-					 * GPDB_96_MERGE_FIXME: it's bogus to assume that the
-					 * entries are all Consts. We used to verify that explicitly,
-					 * but now we just call contain_mutable_functions(), which
-					 * will return true also for more complicated expressions
-					 * that only contain immutable functions. The right way would
-					 * be to evaluate the expression here, with ExecPrepareExpr() +
-					 * ExecEvalExpr(). In practice this works, because the planner
-					 * has already "preprocessed" the target list, which does
-					 * replace more complicated expressions with Consts.
-					 */
-					Assert(IsA(tle->expr, Const));
-
-					nulls[attnum - 1] = ((Const *) tle->expr)->constisnull;
-					if (!nulls[attnum - 1])
-						values[attnum - 1] = ((Const *) tle->expr)->constvalue;
-				}
-			}
-		}
-		ExecStoreVirtualTuple(slot);
-
-		estate->es_result_partitions = pn;
-		estate->es_partition_state =
-			createPartitionState(estate->es_result_partitions, 1 /* resultPartSize */ );
-
-		rri = makeNode(ResultRelInfo);
-		rri->ri_RangeTableIndex = 1;	/* dummy */
-		rri->ri_RelationDesc = rel;
-
-		estate->es_result_relations = rri;
-		estate->es_num_result_relations = 1;
-		estate->es_result_relation_info = rri;
-		rri = slot_get_partition(slot, estate, false);
-
-		/*
-		 * 5: get target policy for destination table
-		 */
-		targetPolicy = RelationGetPartitioningKey(rri->ri_RelationDesc);
-
-		if (targetPolicy->ptype != POLICYTYPE_PARTITIONED)
-			elog(ERROR, "policy must be partitioned");
-
-		heap_close(rri->ri_RelationDesc, NoLock);
-		FreeExecutorState(estate);
-	}
-
 	hashExprs = getExprListFromTargetList(resultplan->plan.targetlist,
 										  targetPolicy->nattrs,
 										  targetPolicy->attrs);

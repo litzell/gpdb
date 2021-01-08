@@ -6,7 +6,7 @@
  *
  * Portions Copyright (c) 1996-2009, PostgreSQL Global Development Group
  * Portions Copyright (c) 1994, Regents of the University of California
- * Portions Copyright (c) 2012-Present Pivotal Software, Inc.
+ * Portions Copyright (c) 2012-Present VMware, Inc. or its affiliates.
  *
  * IDENTIFICATION
  *	  src/backend/utils/time/visibility_summary.c
@@ -25,7 +25,6 @@
 #include "cdb/cdbvars.h"
 #include "lib/stringinfo.h"
 #include "utils/builtins.h"
-#include "utils/tqual.h"
 #include "utils/visibility_summary.h"
 
 static char *
@@ -224,7 +223,6 @@ static char *
 GetTupleVisibilityDistribId(TransactionId xid,
 							TupleTransactionStatus status)
 {
-	DistributedTransactionTimeStamp distribTimeStamp;
 	DistributedTransactionId distribXid;
 
 	switch (status)
@@ -240,14 +238,12 @@ GetTupleVisibilityDistribId(TransactionId xid,
 		case TupleTransactionStatus_HintCommitted:
 		case TupleTransactionStatus_CLogCommitted:
 			if ((!IS_QUERY_DISPATCHER()) &&
-				DistributedLog_CommittedCheck(xid,
-											  &distribTimeStamp,
-											  &distribXid))
+				DistributedLog_CommittedCheck(xid, &distribXid))
 			{
 				char	   *distribId;
 
 				distribId = palloc(TMGIDSIZE);
-				dtxFormGID(distribId, distribTimeStamp, distribXid);
+				dtxFormGid(distribId, distribXid);
 				return distribId;
 			}
 			else
